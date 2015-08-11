@@ -41,38 +41,6 @@ class pixelCounter(tipLocatorEquipment.equipment):
     def run(self):
         print('pixel counter run accessed')
 
-        # while self.display.isNotDone():
-        for i in range(1000):
-            # Creates a video feed of the camera images
-            videoFeed = self.camera.getImage()
-            videoFeedBlank = videoFeed * 0
-
-            # Splits the video into three color channels in grayscale
-            (redVideoChannel, greenVideoChannel, blueVideoChannel) = videoFeed.splitChannels()
-
-
-            # Creates a new video feed that is a grayscale video of the specified laser color values
-            if self.laserColor == 'red':
-                videoFeedConverted = videoFeedBlank.mergeChannels(redVideoChannel,redVideoChannel,redVideoChannel)
-                colorChannel = 0
-            elif self.laserColor == 'green':
-                videoFeedConverted = videoFeedBlank.mergeChannels(greenVideoChannel,greenVideoChannel,greenVideoChannel)
-                colorChannel = 1
-            elif self.laserColor == 'blue':
-                videoFeedConverted = videoFeedBlank.mergeChannels(blueVideoChannel,blueVideoChannel,blueVideoChannel)
-                colorChannel = 2
-
-            # Thresholds the video around thresholdValue
-            videoFeedConverted = videoFeedConverted.binarize(255*thresholdValue).invert()
-
-            # Creates a matrix of values for video feed
-            pixelSumMatrix = videoFeedConverted.getNumpy()
-            # Counts the number of elementr in the matrix with a value greater than 0, this is then number of colored pixels
-            pixelSum = cv2.countNonZero(pixelSumMatrix[:,:,0])
-            print ('There are {} pixels in the frame:'.format(pixelSum))
-
-            time.sleep(.1)
-
         '''
         Initial tests just returns a random number
 
