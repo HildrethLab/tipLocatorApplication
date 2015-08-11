@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'tipLocatorUIBase.ui'
 #
-# Created: Tue Jul 28 13:24:34 2015
+# Created: Mon Aug 10 12:00:16 2015
 #      by: PyQt4 UI code generator 4.11.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -109,9 +109,24 @@ class Ui_TipLocator(QtGui.QWidget):
         self.buttonTipLocatorAbortRoutine = QtGui.QPushButton(TipLocator)
         self.buttonTipLocatorAbortRoutine.setGeometry(QtCore.QRect(240, 30, 110, 41))
         self.buttonTipLocatorAbortRoutine.setObjectName(_fromUtf8("buttonTipLocatorAbortRoutine"))
+        self.buttonQuit = QtGui.QPushButton(TipLocator)
+        self.buttonQuit.setGeometry(QtCore.QRect(29, 441, 111, 51))
+        self.buttonQuit.setObjectName(_fromUtf8("buttonQuit"))
 
         self.retranslateUi(TipLocator)
         QtCore.QMetaObject.connectSlotsByName(TipLocator)
+        TipLocator.setTabOrder(self.entryBoxDirection_X, self.entryBoxDirection_Y)
+        TipLocator.setTabOrder(self.entryBoxDirection_Y, self.entryBoxDirection_Z)
+        TipLocator.setTabOrder(self.entryBoxDirection_Z, self.buttonTipLocatorInitialPositon)
+        TipLocator.setTabOrder(self.buttonTipLocatorInitialPositon, self.buttonTipLocatorStartRoutine)
+        TipLocator.setTabOrder(self.buttonTipLocatorStartRoutine, self.buttonTipLocatorAbortRoutine)
+        TipLocator.setTabOrder(self.buttonTipLocatorAbortRoutine, self.buttonDirectionPos_X)
+        TipLocator.setTabOrder(self.buttonDirectionPos_X, self.buttonDirectionNeg_X)
+        TipLocator.setTabOrder(self.buttonDirectionNeg_X, self.buttonDirectionPos_Y)
+        TipLocator.setTabOrder(self.buttonDirectionPos_Y, self.buttonDirectionNeg_Y)
+        TipLocator.setTabOrder(self.buttonDirectionNeg_Y, self.buttonDirectionPos_Z)
+        TipLocator.setTabOrder(self.buttonDirectionPos_Z, self.buttonDirectionNeg_Z)
+        TipLocator.setTabOrder(self.buttonDirectionNeg_Z, self.buttonMovementAbort)
 
     def retranslateUi(self, TipLocator):
         TipLocator.setWindowTitle(_translate("TipLocator", "Tip Locator", None))
@@ -132,4 +147,5 @@ class Ui_TipLocator(QtGui.QWidget):
         self.buttonTipLocatorInitialPositon.setText(_translate("TipLocator", "Initial Position", None))
         self.buttonTipLocatorStartRoutine.setText(_translate("TipLocator", "Start Routine", None))
         self.buttonTipLocatorAbortRoutine.setText(_translate("TipLocator", "Abort Routine", None))
+        self.buttonQuit.setText(_translate("TipLocator", "Quit", None))
 

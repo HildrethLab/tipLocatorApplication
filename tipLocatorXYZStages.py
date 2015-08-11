@@ -2,17 +2,17 @@
 Specific XYZ Stages that will send commands to the XPS system to control stage movement.
 '''
 
-# Imports
-import tipLocatorStages # Generic stages that will be inherited by XYZ Stages
-
-import XPS_Q8_drivers # Control module for the XPS system
-
+## Imports
+# Built in modules
 import sys
+# Custom modules
+import tipLocatorStages # Generic stages that will be inherited by XYZ Stages
+import XPS_Q8_drivers # Control module for the XPS system
 
 # Main XYZ Stages class
 class XYZStages(tipLocatorStages.stages):
     def __init__(self):
-        print('XYZStages initalized')
+        print('XYZStages accessed')
         # Initializes the stages
         tipLocatorStages.stages.__init__(self)
 
@@ -26,7 +26,18 @@ class XYZStages(tipLocatorStages.stages):
         self.positioner_Z = None
         self.stageVelocity = 1.0
 
-    def initalizeStages(self):
+    # TEMP metho for initializing the stages
+    def initializeStages(self):
+        print('Fake stage initialization')
+        # Sets up the macro group and the positioners
+        self.macroGroup = 'XYZ'
+        self.positioner_X = self.macroGroup + '.X'
+        self.positioner_Y = self.macroGroup + '.Y'
+        self.positioner_Z = self.macroGroup + '.Z'
+
+    # Method for initializing the stages
+    def initializeStagesREAL(self):
+        print('Stages initializes')
         # Checks for potential errors connecting to the XPS System (Code from XPS manufacture)
         def displayErrorAndClose (socketId, errorCode, APIName):
 			if (errorCode != -2) and (errorCode != -108):
@@ -44,14 +55,17 @@ class XYZStages(tipLocatorStages.stages):
 			return
 
         # Creates an instance of the XPS system
+        print('Creating XPS system')
         self._XPSSystem = XPS_Q8_drivers.XPS()
 
         ## Gets the socketIDs for the created system
+        print('Getting socketIDs for XPS')
         # SocketID1 is for initiating stage movements
         self._socketID1 = self._XPSSystem.TCP_ConnectToServer('192.168.0.254',5001,20) # Returns -1 if connection error occurs
         # SocketID2 is for interrupting stage movements
         self._socketID2 = self._XPSSystem.TCP_ConnectToServer('192.168.0.254',5001,21) # Returns -1 if connection error occurs
 
+        print('Checking XPS connection')
         # If statements to check to make sure that both sockets were created correctly
         if (self._socketID1 == -1):
             print('Connection to XPS failed, check IP and Port. SocketID1')
@@ -59,6 +73,7 @@ class XYZStages(tipLocatorStages.stages):
         if (self._socketID2 == -1):
             print('Connection to XPS failed, check IP and Port. SocketID2')
             sys.exit()
+        print('XPS check complete')
 
         # Sets up the macro group and the positioners
         self.macroGroup = 'XYZ'
@@ -78,21 +93,25 @@ class XYZStages(tipLocatorStages.stages):
 
     # Method for moving the stages to an aboslute position
     def moveStageAbsolute(self, direction, location):
+        print('moveStageAbsolute direction: {}, location: {}'.format(direction,location))
         self._XPSSystem.GroupMoveAbsolute(self._socketID1,direction,location)
 
     # Method for moving the stages a relative distance
     def moveStageRelative(self, direction, distance):
+        print('moveStageRelative direction: {}, distance: {}'.format(direction,distance))
         self._XPSSystem.GroupMoveRelative(self._socketID1,direction,distance)
 
      # Method for aborting stage movement (aborts all directions)
     def moveStageAbort(self):
+        print('moveStageAbort')
         self._XPSSystem.GroupMoveAbort(self._socketID2, self.positioner_X)
         self._XPSSystem.GroupMoveAbort(self._socketID2, self.positioner_Y)
         self._XPSSystem.GroupMoveAbort(self._socketID2, self.positioner_Z)
         self._XPSSystem.GroupMoveAbort(self._socketID2, self.macroGroup)
 
-    # Gets the current location of the stage
+    # Method to get the current location of the stage
     def retrieveStagePostion(self):
+        print('retrieveStagePosition')
         # Gets the current location of each axis of the stage
         [_stagePositionXError, _stagePositionX] = self._XPSSystem.GroupPositionCurrentGet(self._socketID1,self.positioner_X,1)
         [_stagePositionYError, _stagePositionY] = self._XPSSystem.GroupPositionCurrentGet(self._socketID1,self.positioner_Y,1)
@@ -101,7 +120,9 @@ class XYZStages(tipLocatorStages.stages):
         # Retruns the locations
         return _stagePositionX, _stagePositionY, _stagePositionZ
 
+    # Method to check if the stages are moving
     def checkMotionStatus(self):
+        print('checkMotionStatus')
         # Gets the current motion status of each positioner
         [_stageMotionStatusXError, _stageMotionStatusX] = self._XPSSystem.GroupMotionStatusGet(self._socketID2,self.positioner_X,1)
         [_stageMotionStatusYError, _stageMotionStatusY] = self._XPSSystem.GroupMotionStatusGet(self._socketID2,self.positioner_X,1)

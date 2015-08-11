@@ -367,7 +367,35 @@
     <string>Abort Routine</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="buttonQuit">
+   <property name="geometry">
+    <rect>
+     <x>29</x>
+     <y>441</y>
+     <width>111</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Quit</string>
+   </property>
+  </widget>
  </widget>
+ <tabstops>
+  <tabstop>entryBoxDirection_X</tabstop>
+  <tabstop>entryBoxDirection_Y</tabstop>
+  <tabstop>entryBoxDirection_Z</tabstop>
+  <tabstop>buttonTipLocatorInitialPositon</tabstop>
+  <tabstop>buttonTipLocatorStartRoutine</tabstop>
+  <tabstop>buttonTipLocatorAbortRoutine</tabstop>
+  <tabstop>buttonDirectionPos_X</tabstop>
+  <tabstop>buttonDirectionNeg_X</tabstop>
+  <tabstop>buttonDirectionPos_Y</tabstop>
+  <tabstop>buttonDirectionNeg_Y</tabstop>
+  <tabstop>buttonDirectionPos_Z</tabstop>
+  <tabstop>buttonDirectionNeg_Z</tabstop>
+  <tabstop>buttonMovementAbort</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

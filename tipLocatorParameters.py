@@ -4,8 +4,10 @@ This includes the shared information between threads as well as the variables th
 system loops
 '''
 
-#Imports
+## Imports
+# Built in modules
 
+# Custom modules
 
 # Key variables (kHNSCTL aka: key Hildreth Nano System Controller Tip Locator)
 kHNSCTL_mainControlLoopRunning = 'kHNSCTL_mainControlLoopRunning'
