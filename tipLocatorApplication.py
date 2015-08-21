@@ -12,9 +12,12 @@ import multiprocessing
 # Custom modules
 import tipLocatorUI # User interface for the application
 import tipLocatorSystemController # System controller for the application
+import tipLocatorParameters
 
 def tipLocatorApplication():
     print('Application run')
+    # Initializes the global parameters
+    tipLocatorParameters.init()
     # Calls the UI launch function
     launchUI()
 

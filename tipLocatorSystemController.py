@@ -16,18 +16,21 @@ import tipLocatorParameters # Global parameters shared between the threads
 
 # System controller class that inherits threading
 class systemController():
-    def __init__(self,queue_SCtoUI):
+    def __init__(self,queue_SCtoUI,pipe_UItoPixel2):
         print('System Controller Initialized')
         # Creates the instance's queue connection with the UI
-        self._queue_SCtoUI = queue_SCtoUI
+        self.queue_SCtoUI = queue_SCtoUI
+        self.pipe_UItoPixel2 = pipe_UItoPixel2
 
         # Creates the dictionary of commands
         self._commandList = {
             'startTipLocatorRoutine' : self.tipLocatorRoutine,
+            'finishedTipLocatorRoutine' : self.tipLocatorRoutineFinished,
             'stopTipLocatorRoutine' : self.abortRoutine,
             'moveStagesToInitialPosition' : self.moveStageToInitialPosition,
             'moveStagesRelative' : self.moveStagesRelative,
-            'abortRoutine' : self.abortRoutine()
+            'abortRoutine' : self.abortRoutine(),
+            'shutDown' : self.shutDown()
         }
 
         # Creates the dictionary of movement direction (multiplier for movement distance)
@@ -55,9 +58,9 @@ class systemController():
         while True:
             # Checks to see if there queue is empty, if not gets the command
             # print('Checking for items in queue')
-            if not self._queue_SCtoUI.empty():
+            if not self.queue_SCtoUI.empty():
                 # Gets the next command from the queue
-                _command = self._queue_SCtoUI.get()
+                _command = self.queue_SCtoUI.get()
                 print('Received command {}'.format(_command))
                 try:
                     # Tries to run the method associated with the command received
@@ -90,11 +93,19 @@ class systemController():
         routineStagesInstance.initializeStages()
 
         # Creates the pixel counter that will be used for the routine
-        routinePixelCounter = tipLocatorPixelCounter.pixelCounter(queue_SCtoPixelCounter)
+        routinePixelCounter = tipLocatorPixelCounter.pixelCounter(queue_SCtoPixelCounter,self.pipe_UItoPixel2)
         print('Creating video process')
-        routinePixelCounterProcess = multiprocessing.Process(target=routinePixelCounter.run, args=())
+        self.routinePixelCounterProcess = multiprocessing.Process(target=routinePixelCounter.run, args=())
+        self.routinePixelCounterProcess.daemon = True
         print('Starting pixel counter process')
-        routinePixelCounterProcess.start()
+        self.routinePixelCounterProcess.start()
+
+        # Creates a new process holding the stages and starts them moving
+        locatorRoutineStages = tipLocatorXYZStages.XYZStages()
+        locatorRoutineStages.initializeStages()
+        locatorRoutineStagesProcess = multiprocessing.Process(target=locatorRoutineStages.moveStageRelative, args=(locatorRoutineStages.positioner_Y,10.0))
+        locatorRoutineStagesProcess.daemon = True
+        locatorRoutineStagesProcess.start()
         # Control loop for the tip locator routine. Runs until red pixels get above a certain number
         print('Starting location routine')
         continueScanning = True
@@ -102,15 +113,23 @@ class systemController():
             print('In routine')
             # Gets the current red pixel counter
             currentPixelCount = queue_SCtoPixelCounter.get()
-            # Checks to see what the current pixel count is and ends the loop once it is overcome
+            # Checks to see what the current pixel count is and ends the loop once it is reached
             if currentPixelCount >= self.thresholdPixelCount:
-                #Threshold met for scanning.  Stop scanning by setting continueScanning to False
+                #Threshold met, stop scanning by setting continueScanning to False
                 continueScanning = False
             print('End of loop Count:{}'.format(currentPixelCount))
+        print('Location found')
+        locatorRoutineStages.moveStageAbort()
+        currentStageLocation = locatorRoutineStages.retrieveStagePostion()
+        locatorRoutineStagesProcess.terminate()
+        print(currentStageLocation)
 
         print('Scattering event triggered at {} pixels'.format(currentPixelCount))
 
-
+    # Method to close pixel counter process once routine is finished
+    def tipLocatorRoutineFinished(self):
+        print('tipLocatorRoutineFinished accessed')
+        self.routinePixelCounterProcess.terminate()
 
     # Method to abord the routine
     def abortRoutine(self):
@@ -127,9 +146,9 @@ class systemController():
     def moveStagesRelative(self):
         print('moveStagesRelative accessed')
         # Pulls the movement direction from the UI / system controller queue
-        direction = self._queue_SCtoUI.get()
+        direction = self.queue_SCtoUI.get()
         # Pulls the movement distance from the UI / system controller queue
-        distance = self._queue_SCtoUI.get()
+        distance = self.queue_SCtoUI.get()
 
         # Creates an instance of the stages to use for relative movement
         stageInstance = tipLocatorXYZStages.XYZStages()
@@ -153,3 +172,12 @@ class systemController():
         print('Starting movement process')
         movementProcess.start()
         print('Finished movement process')
+
+    # Method to shut down the system controller
+    def shutDown(self):
+        # Tries to close any processes that may be open
+        try:
+            self.routinePixelCounterProcess.terminate()
+        except:
+            print('Failed to shut down all processes')
+

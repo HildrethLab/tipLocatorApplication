@@ -6,7 +6,8 @@ system loops
 
 ## Imports
 # Built in modules
-
+import SimpleCV
+import cv2
 # Custom modules
 
 # Key variables (kHNSCTL aka: key Hildreth Nano System Controller Tip Locator)
@@ -17,7 +18,6 @@ kHNSCTL_mainControlLoopRunning = 'kHNSCTL_mainControlLoopRunning'
 def init():
     print('Parameters initialized')
     global _globalParameters
-
     # Creates an empty dictionary that will be updated and retrieved from
     _globalParameters = {}
 

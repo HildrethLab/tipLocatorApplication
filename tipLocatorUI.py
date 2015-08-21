@@ -9,9 +9,12 @@ This module has all of the functionality for the UI
 from PyQt4 import QtGui, QtCore # Allows for the use of PyQt functionality
 import sys # Allows interaction with system
 import multiprocessing # Allows access to processes and their commands
+import SimpleCV
+import cv2
 # Custom modules
 import tipLocatorUIBase # Base UI that will be inherited
 import tipLocatorSystemController # System controller class
+import tipLocatorParameters
 
 # Primary UI class that inherits from the base UI
 class tipLocatorUI(tipLocatorUIBase.Ui_TipLocator):
@@ -23,14 +26,15 @@ class tipLocatorUI(tipLocatorUIBase.Ui_TipLocator):
         # Runs the button functionality
         self.buttonFunctionality()
 
-        # Creates the pipe for communicating with the system controller
-        self._queue_SCtoUI = multiprocessing.Queue()
+        # Creates the queues for communicating between processes
+        self.queue_SCtoUI = multiprocessing.Queue()
+        (self.pipe_UItoPixel1,self.pipe_UItoPixel2) = multiprocessing.Pipe()
 
         # Moves the UI to the top left corner of the screen
         self.move(0,0)
 
         # Initializes the system controller
-        self.initializeSystemController(self._queue_SCtoUI)
+        self.initializeSystemController(self.queue_SCtoUI,self.pipe_UItoPixel2)
 
     # Method to add functionality to the UIs buttons
     def buttonFunctionality(self):
@@ -63,10 +67,17 @@ class tipLocatorUI(tipLocatorUIBase.Ui_TipLocator):
     # Method for when the quit button is clicked
     def buttonClickedQuit(self):
         print('Quit button clicked')
-        # Attempts to close the system controller process and then quit the application
+        # Attempts to close the application smoothly
         try:
+            # Sends shut down command to system controller
+            self.queue_SCtoUI.put('shutDown')
+            # Ends the video feed
+            tipLocatorParameters.videoFeed = None
+            # Ends the camera
+            tipLocatorParameters.camera = None
+            # Ends the system controller process
             self.systemControllerProcess.terminate()
-            print('System Controller Process terminated')
+            print('Processes terminated')
         except:
             print('Failed to shutdown system controller process')
         sys.exit()
@@ -77,9 +88,9 @@ class tipLocatorUI(tipLocatorUIBase.Ui_TipLocator):
         # Attempts to write moveStagesRelative to system controller queue
         try:
             print('Attempting to send move stages relative command')
-            self._queue_SCtoUI.put('moveStagesRelative')
-            self._queue_SCtoUI.put(_direction)
-            self._queue_SCtoUI.put(_value)
+            self.queue_SCtoUI.put('moveStagesRelative')
+            self.queue_SCtoUI.put(_direction)
+            self.queue_SCtoUI.put(_value)
         except:
             print('Failed to move stages relative')
 
@@ -90,8 +101,8 @@ class tipLocatorUI(tipLocatorUIBase.Ui_TipLocator):
         # Attempts to write stopTipLocatorRoutine to system controller queue
         try:
             print('Ending main control loop')
-            self._queue_SCtoUI.put('abortRoutine')
-            self._queue_SCtoUI.put('stopTipLocatorRoutine')
+            self.queue_SCtoUI.put('abortRoutine')
+            self.queue_SCtoUI.put('stopTipLocatorRoutine')
         except:
             print('Failed to abort')
 
@@ -101,9 +112,11 @@ class tipLocatorUI(tipLocatorUIBase.Ui_TipLocator):
         # Attempts to write startTipLocatorRoutine to system controller queue
         try:
             print('Starting main routine')
-            self._queue_SCtoUI.put('startTipLocatorRoutine')
+            self.queue_SCtoUI.put('startTipLocatorRoutine')
         except:
             print('Main routine failed to start')
+
+        self.processVideo()
 
     # Method for when the initial position button is clicked
     def moveToInitialPosition(self):
@@ -111,17 +124,17 @@ class tipLocatorUI(tipLocatorUIBase.Ui_TipLocator):
         # Attempts to write moveStagesToInitialPosition to system controller queue
         try:
             print('UI sending move to initial position command')
-            self._queue_SCtoUI.put('moveStagesToInitialPosition')
+            self.queue_SCtoUI.put('moveStagesToInitialPosition')
         except:
             print('Failed to move stages to initial position')
 
     # Method for starting the system controller
-    def initializeSystemController(self,_queue_SCtoUI):
+    def initializeSystemController(self,queue_SCtoUI,pipe_UItoPixel2):
         print('initializeSystemController accessed')
         ## Starting the system controller
         # Creates an instance of the system controller
         print('Creating system controller')
-        self.systemController = tipLocatorSystemController.systemController(_queue_SCtoUI)
+        self.systemController = tipLocatorSystemController.systemController(queue_SCtoUI,pipe_UItoPixel2)
         # Creates a thread from the system controller
         print('Creating process for system controller')
         self.systemControllerProcess = multiprocessing.Process(target=self.systemController.run, args=())
@@ -131,6 +144,33 @@ class tipLocatorUI(tipLocatorUIBase.Ui_TipLocator):
         # Starts the system controller thread
         print('Starting the system controller process')
         self.systemControllerProcess.start()
+
+    # Method for processing the video feed
+    def processVideo(self):
+        print('processVideo accessed')
+        camera = SimpleCV.Camera()
+        processVideoRunning = True
+        print('Starting processVideo loop')
+        while processVideoRunning:
+            # print('Inside processVideo loop')
+            QtGui.QApplication.processEvents()
+
+            videoFeed = camera.getImage()
+            videoFeedBlank = videoFeed * 0
+            (redVideoChannel, greenVideoChannel, blueVideoChannel) = videoFeed.splitChannels()
+            videoFeedConverted = videoFeedBlank.mergeChannels(redVideoChannel,redVideoChannel,redVideoChannel)
+            videoFeedConverted = videoFeedConverted.binarize(255 * 0.90).invert()
+
+            # Creates a matrix of values for video feed
+            pixelSumMatrix = videoFeedConverted.getNumpy()
+            # Counts the number of elements in the matrix with a value greater than 0, this is the number of colored pixels
+            pixelSum = cv2.countNonZero(pixelSumMatrix[:,:,0])
+            self.pipe_UItoPixel1.send(pixelSum)
+            if self.pipe_UItoPixel1.recv() == 'scatteringEventDetected':
+                processVideoRunning = False
+                print('UI received command to stop processing video')
+
+        print('Done processing video')
 
 # Main function that loads and runs the UI for testing
 def tipLocatorApplicationMain():

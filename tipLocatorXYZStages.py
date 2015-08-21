@@ -24,7 +24,10 @@ class XYZStages(tipLocatorStages.stages):
         self.positioner_X = None
         self.positioner_Y = None
         self.positioner_Z = None
-        self.stageVelocity = 1.0
+        self.stageVelocity = 0.1
+
+        ### TEMP
+        self.count = 0.0
 
     # TEMP metho for initializing the stages
     def initializeStages(self):
@@ -99,19 +102,26 @@ class XYZStages(tipLocatorStages.stages):
     # Method for moving the stages a relative distance
     def moveStageRelative(self, direction, distance):
         print('moveStageRelative direction: {}, distance: {}'.format(direction,distance))
+        while True:
+            self.count += 0.1
+        '''
         self._XPSSystem.GroupMoveRelative(self._socketID1,direction,distance)
+        '''
 
      # Method for aborting stage movement (aborts all directions)
     def moveStageAbort(self):
         print('moveStageAbort')
+        '''
         self._XPSSystem.GroupMoveAbort(self._socketID2, self.positioner_X)
         self._XPSSystem.GroupMoveAbort(self._socketID2, self.positioner_Y)
         self._XPSSystem.GroupMoveAbort(self._socketID2, self.positioner_Z)
         self._XPSSystem.GroupMoveAbort(self._socketID2, self.macroGroup)
+        '''
 
     # Method to get the current location of the stage
     def retrieveStagePostion(self):
         print('retrieveStagePosition')
+        '''
         # Gets the current location of each axis of the stage
         [_stagePositionXError, _stagePositionX] = self._XPSSystem.GroupPositionCurrentGet(self._socketID1,self.positioner_X,1)
         [_stagePositionYError, _stagePositionY] = self._XPSSystem.GroupPositionCurrentGet(self._socketID1,self.positioner_Y,1)
@@ -119,6 +129,10 @@ class XYZStages(tipLocatorStages.stages):
 
         # Retruns the locations
         return _stagePositionX, _stagePositionY, _stagePositionZ
+        '''
+
+        ### TEMP return for testing
+        return (self.count)
 
     # Method to check if the stages are moving
     def checkMotionStatus(self):
