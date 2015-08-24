@@ -68,7 +68,7 @@ class systemController():
                 except:
                     print('Unknown command issued: {}'.format(_command))
             # Delay between each check of the queue
-            time.sleep(1)
+            # time.sleep(1)
 
     ## Initialization methods
     # Initializes the equipment
@@ -119,10 +119,13 @@ class systemController():
                 continueScanning = False
             print('End of loop Count:{}'.format(currentPixelCount))
         print('Location found')
+        # Stops the stage movement
         locatorRoutineStages.moveStageAbort()
+        # Retrieves the current stage position
         currentStageLocation = locatorRoutineStages.retrieveStagePostion()
+        # Terminates the stage process
         locatorRoutineStagesProcess.terminate()
-        print(currentStageLocation)
+        print('Position of scattering event: {}'.format(currentStageLocation))
 
         print('Scattering event triggered at {} pixels'.format(currentPixelCount))
 
@@ -180,4 +183,3 @@ class systemController():
             self.routinePixelCounterProcess.terminate()
         except:
             print('Failed to shut down all processes')
-
