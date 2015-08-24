@@ -162,6 +162,8 @@ class tipLocatorUI(tipLocatorUIBase.Ui_TipLocator):
             # print('Inside processVideo loop')
             # Command to manually process GUI events each iteration of the control loop
             QtGui.QApplication.processEvents()
+            # Creates a camera that will be used to capture the video feed
+            # camera = SimpleCV.Camera()
             # Creates the video feed form the camera for processing
             videoFeed = self.camera.getImage()
             # Creates a blank video feed for merging desired channel into
@@ -177,6 +179,7 @@ class tipLocatorUI(tipLocatorUIBase.Ui_TipLocator):
             pixelSumMatrix = videoFeedConverted.getNumpy()
             # Counts the number of elements in the matrix with a value greater than 0, this is the number of colored pixels
             pixelSum = cv2.countNonZero(pixelSumMatrix[:,:,0])
+            print(pixelSum)
             # Sends the number of pixels counted down the UI to pixel pipe
             self.pipe_UItoPixel1.send(pixelSum)
             # Checks to see if a scattering event detected message has been received and ends video processing loop if it has
