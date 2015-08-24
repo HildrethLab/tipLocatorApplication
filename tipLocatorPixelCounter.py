@@ -50,6 +50,7 @@ class pixelCounter(tipLocatorEquipment.equipment):
         self.pipe_UItoPixel2.send('scatteringEventDetected')
         self.queue_SCtoPixelCounter.put(pixelSum)
 
+        self.clearPixelQueue()
 
         '''
         Initial tests just returns a random number
@@ -62,3 +63,16 @@ class pixelCounter(tipLocatorEquipment.equipment):
             time.sleep(.1)
 
         '''
+
+     # Method to remove all entries from the pixel queue
+    def clearPixelQueue(self):
+        print('Starting to empty pixel count pipe')
+        # Sets a continue emptying queue to true
+        continueEmptyingQueue = True
+        # Runs a loop until the queue is empty
+        while continueEmptyingQueue:
+            nextPipeValue = self.pipe_UItoPixel2.recv()
+            if nextPipeValue == 'End of pixel count':
+                print('Pixel count pipe is empty')
+                break
+            print('Current pixel count pipe value: {}'.format(nextPipeValue))
