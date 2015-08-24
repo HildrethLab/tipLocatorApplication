@@ -36,6 +36,11 @@ class tipLocatorUI(tipLocatorUIBase.Ui_TipLocator):
         # Initializes the system controller
         self.initializeSystemController(self.queue_SCtoUI,self.pipe_UItoPixel2)
 
+        # Creates a camera that will be used for video processing
+        self.camera = SimpleCV.Camera()
+        # Desired threshold value for processing the video
+        self.thresholdValue = 0.90
+
     # Method to add functionality to the UIs buttons
     def buttonFunctionality(self):
         ## Tip Locator Buttons
@@ -84,10 +89,10 @@ class tipLocatorUI(tipLocatorUIBase.Ui_TipLocator):
 
     # Method for when a manual movement button is clicked
     def buttonClickedManualMove(self, _direction, _value):
-        print('Manual move button clicked: Moved {} in {}'.format(_value,_direction))
+        # print('Manual move button clicked: Moved {} in {}'.format(_value,_direction))
         # Attempts to write moveStagesRelative to system controller queue
         try:
-            print('Attempting to send move stages relative command')
+            # print('Attempting to send move stages relative command')
             self.queue_SCtoUI.put('moveStagesRelative')
             self.queue_SCtoUI.put(_direction)
             self.queue_SCtoUI.put(_value)
@@ -116,6 +121,7 @@ class tipLocatorUI(tipLocatorUIBase.Ui_TipLocator):
         except:
             print('Main routine failed to start')
 
+        # Begins processing the video feed
         self.processVideo()
 
     # Method for when the initial position button is clicked
@@ -148,28 +154,38 @@ class tipLocatorUI(tipLocatorUIBase.Ui_TipLocator):
     # Method for processing the video feed
     def processVideo(self):
         print('processVideo accessed')
-        camera = SimpleCV.Camera()
+        # Sets the video processing loop variable to true
         processVideoRunning = True
         print('Starting processVideo loop')
+        # While loop for processing the video feed
         while processVideoRunning:
             # print('Inside processVideo loop')
+            # Command to manually process GUI events each iteration of the control loop
             QtGui.QApplication.processEvents()
-
-            videoFeed = camera.getImage()
+            # Creates the video feed form the camera for processing
+            videoFeed = self.camera.getImage()
+            # Creates a blank video feed for merging desired channel into
             videoFeedBlank = videoFeed * 0
+            # Splits the video into its three color channels
             (redVideoChannel, greenVideoChannel, blueVideoChannel) = videoFeed.splitChannels()
+            # Merges the red video channel into all three color channels of blank video feed to create grayscale video
             videoFeedConverted = videoFeedBlank.mergeChannels(redVideoChannel,redVideoChannel,redVideoChannel)
-            videoFeedConverted = videoFeedConverted.binarize(255 * 0.90).invert()
+            # Threasholds video based on the specified threshold value
+            videoFeedConverted = videoFeedConverted.binarize(255 * self.thresholdValue).invert()
 
             # Creates a matrix of values for video feed
             pixelSumMatrix = videoFeedConverted.getNumpy()
             # Counts the number of elements in the matrix with a value greater than 0, this is the number of colored pixels
             pixelSum = cv2.countNonZero(pixelSumMatrix[:,:,0])
+            # Sends the number of pixels counted down the UI to pixel pipe
             self.pipe_UItoPixel1.send(pixelSum)
+            # Checks to see if a scattering event detected message has been received and ends video processing loop if it has
             if self.pipe_UItoPixel1.recv() == 'scatteringEventDetected':
                 processVideoRunning = False
                 print('UI received command to stop processing video')
 
+        # Sends a final message down the pipe to show it is the end of the video processing (used to clear the pipe)
+        self.pipe_UItoPixel1.send('End of pixel count')
         print('Done processing video')
 
 # Main function that loads and runs the UI for testing
