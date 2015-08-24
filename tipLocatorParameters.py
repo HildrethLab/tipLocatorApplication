@@ -16,7 +16,7 @@ kHNSCTL_mainControlLoopRunning = 'kHNSCTL_mainControlLoopRunning'
 
 # Function that initializes the global parameters
 def init():
-    print('Parameters initialized')
+    # print('Parameters initialized')
     global _globalParameters
     # Creates an empty dictionary that will be updated and retrieved from
     _globalParameters = {}

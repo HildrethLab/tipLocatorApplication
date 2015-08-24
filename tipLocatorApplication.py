@@ -15,7 +15,7 @@ import tipLocatorSystemController # System controller for the application
 import tipLocatorParameters
 
 def tipLocatorApplication():
-    print('Application run')
+    # print('Application run')
     # Initializes the global parameters
     tipLocatorParameters.init()
     # Calls the UI launch function
@@ -23,16 +23,16 @@ def tipLocatorApplication():
 
 # Function to launch the UI
 def launchUI():
-    print('launchUI accessed')
+    # print('launchUI accessed')
     ## Loading and displaying the UI
     # Creates the GUI application
-    print('Creating GUI application')
+    # print('Creating GUI application')
     app = QtGui.QApplication(sys.argv)
     # Creates the class instance defining what to display
-    print('Creating an instance of the UI')
+    # print('Creating an instance of the UI')
     ex = tipLocatorUI.tipLocatorUI()
     # Shows the class instance
-    print('Showing the instance of the UI')
+    # print('Showing the instance of the UI')
     ex.show()
     # Exits the program when the GUI application is exited
     sys.exit(app.exec_())
