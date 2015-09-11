@@ -71,8 +71,6 @@ class SystemController():
     ## Initialization methods
     # Initializes the equipment
     def initializeEquipment(self):
-        # Creates the visa resource manager
-
         # Creates the stages
         self.substrateStages = TLXYZStages.XYZStages()
         # Initializes the stages
@@ -90,7 +88,7 @@ class SystemController():
         # Loop that runs 6 times to collect 6 data points
         for i in range(dataPoints):
             print('Collecting data point {}'.format(i))
-            ## Initializing stage movement
+            # Initializing stage movement
             # Sends the movement direction to the queue to be read
             print('Sending direction to queue')
             self.queue_SCtoUI.put('+Y')
@@ -99,17 +97,20 @@ class SystemController():
             self.queue_SCtoUI.put(routineMovementDistance)
             # Calls the relative stage movement method
             print('Calling movement method')
-            self.moveStagesRelative()
+            stages = self.moveStagesRelative()
+
             ## Begins scattering event detection
             # Informs the UI to start processing the video feed
             self.queue_routineLoop.put('Start video processing')
             print('Starting scattering detection')
             pixelTriggerValue = self.detectScatteringEvent()
+
             # Stopping stage movement
-            self.stageInstance.moveStageAbort()
+            # print('Stopping stage movement')
+            stages.moveStageAbort()
             # Retrieving stage position
             print('Retrieving stage position')
-            [x,y,z] = self.stageInstance.retrieveStagePosition()
+            [x,y,z] = stages.retrieveStagePosition()
             print('Stage position: {},{},{}'.format(x,y,z))
 
             # Creates a data point with the stage position and pixel coiunt
@@ -119,55 +120,6 @@ class SystemController():
         self.queue_routineLoop.put('End routine loop')
         # Retrieves all of the data points collected
         self.retrieveDataPoints()
-
-
-        '''
-        #### WORKING, INEFFICIENT SO REWRITING CODE ####
-        # Creates the queues for communication with pixel counter and stages
-        queue_SCtoPixelCounter = multiprocessing.Queue()
-
-        # Creates and initializes the stages for the routine
-        routineStagesInstance = tipLocatorXYZStages.XYZStages()
-        routineStagesInstance.initializeStages()
-
-        # Creates the pixel counter that will be used for the routine
-        routinePixelCounter = tipLocatorPixelCounter.pixelCounter(queue_SCtoPixelCounter,self.pipe_UItoPixel2)
-        # print('Creating video process')
-        self.routinePixelCounterProcess = multiprocessing.Process(target=routinePixelCounter.run, args=())
-        self.routinePixelCounterProcess.daemon = True
-        # print('Starting pixel counter process')
-        self.routinePixelCounterProcess.start()
-
-        # Creates a new process holding the stages and starts them moving
-        locatorRoutineStages = tipLocatorXYZStages.XYZStages()
-        locatorRoutineStages.initializeStages()
-        locatorRoutineStagesProcess = multiprocessing.Process(target=locatorRoutineStages.moveStageRelative, args=(locatorRoutineStages.positioner_Y,routineMovementDistance))
-        locatorRoutineStagesProcess.daemon = True
-        locatorRoutineStagesProcess.start()
-        # Control loop for the tip locator routine. Runs until red pixels get above a certain number
-        # print('Starting location routine')
-        continueScanning = True
-        while continueScanning:
-            # print('In routine')
-            # Gets the current red pixel counter
-            currentPixelCount = queue_SCtoPixelCounter.get()
-            # Checks to see what the current pixel count is and ends the loop once it is reached
-            if currentPixelCount >= self.thresholdPixelCount:
-                #Threshold met, stop scanning by setting continueScanning to False
-                continueScanning = False
-            print('End of loop Count:{}'.format(currentPixelCount))
-        # print('Location found')
-        # Stops the stage movement
-        locatorRoutineStages.moveStageAbort()
-        # Retrieves the current stage position
-        [currentStageLocation_X, currentStageLocation_Y, currentStageLocation_Z] = locatorRoutineStages.retrieveStagePostion()
-        # Saves the position as an instance of the data class
-        tipLocatorDataClass.tipLocatorData(currentStageLocation_X, currentStageLocation_Y, currentStageLocation_Z)
-        # Terminates the stage process
-        locatorRoutineStagesProcess.terminate()
-
-        # print('Scattering event triggered at {} pixels'.format(currentPixelCount))
-        '''
 
     # Method to watch for scattering event
     def detectScatteringEvent(self):
@@ -207,16 +159,27 @@ class SystemController():
         print('tipLocatorRoutineFinished accessed')
         self.routinePixelCounterProcess.terminate()
 
-    # Method to abord the routine
+    # Method to abory the routine
     def abortRoutine(self):
         print('abortRoutine accessed')
+        print('retrieveStagePosition accessed - SC')
+        self.substrateStages.moveStageAbort()
 
     ## Movement commands
     # Method to move the stages to the start position (not determined yet so (0,0,0)
     def moveStageToInitialPosition(self):
         print('moveStagesToOrigin accessed')
         # Sends absolute movement command to stages
-        self.substrateStages.moveStageAbsolute(self.substrateStages.macroGroup,[0.0,0.0,0.0])
+        self.substrateStages.moveStageAbsolute(self.substrateStages.macroGroup,[0.0,0.0,-5.0])
+
+    # Method to retreive the stage position
+    def retrieveStagePosition(self):
+        print('retrieveStagePosition accessed - SC')
+        # Sends request for stage position to stages
+        [x,y,z] = self.substrateStages.retrieveStagePosition()
+        print(x,y,z)
+        return(x,y,z)
+
 
     # Method to move the stages to a relative location
     def moveStagesRelative(self):
@@ -229,27 +192,29 @@ class SystemController():
         print('Moving stages in {} by {}'.format(direction,distance))
 
         # Creates an instance of the stages to use for relative movement
-        self.stageInstance = TLXYZStages.XYZStages()
-        self.stageInstance.initializeStages()
+        stageInstance = TLXYZStages.XYZStages()
+        stageInstance.initializeStages()
 
         # Determines the direction multiplier based on the direction sent
         directionMultiplier = self._movementDirectionDictionary[direction]
 
         # Pulls the correct direction name for the stages based on the direction of movement
         if (direction == '-X') or (direction == '+X'):
-            direction = self.stageInstance.positioner_X
+            direction = stageInstance.positioner_X
         elif (direction == '-Y') or (direction == '+Y'):
-            direction = self.stageInstance.positioner_Y
+            direction = stageInstance.positioner_Y
         elif (direction == '-Z') or (direction == '+Z'):
-            direction = self.stageInstance.positioner_Z
+            direction = stageInstance.positioner_Z
 
 
         # Sends relative movement command to stages on a new process
         # print('Creating movement process')
-        movementProcess = multiprocessing.Process(target=self.stageInstance.moveStageRelative,args=(direction,[distance * directionMultiplier]))
+        movementProcess = threading.Thread(target=stageInstance.moveStageRelative,args=(direction,[distance * directionMultiplier]))
         # print('Starting movement process')
         movementProcess.start()
         # print('Finished movement process')
+
+        return stageInstance
 
     # Method to shut down the system controller
     def shutDown(self):
