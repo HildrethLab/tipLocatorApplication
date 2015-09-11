@@ -27,7 +27,7 @@ class XYZStages(TLStages.Stages):
         self.stageVelocity = 0.1
 
     # TEMP metho for initializing the stages
-    def initializeStages(self):
+    def initializeStagesTEST(self):
         # print('Fake stage initialization')
         # Sets up the macro group and the positioners
         self.macroGroup = 'XYZ'
@@ -36,8 +36,8 @@ class XYZStages(TLStages.Stages):
         self.positioner_Z = self.macroGroup + '.Z'
 
     # Method for initializing the stages
-    def initializeStagesREAL(self):
-        # print('Stages initializes')
+    def initializeStages(self):
+        print('Stages initializes')
         # Checks for potential errors connecting to the XPS System (Code from XPS manufacture)
         def displayErrorAndClose (socketId, errorCode, APIName):
 			if (errorCode != -2) and (errorCode != -108):
@@ -64,6 +64,9 @@ class XYZStages(TLStages.Stages):
         self._socketID1 = self._XPSSystem.TCP_ConnectToServer('192.168.0.254',5001,20) # Returns -1 if connection error occurs
         # SocketID2 is for interrupting stage movements
         self._socketID2 = self._XPSSystem.TCP_ConnectToServer('192.168.0.254',5001,21) # Returns -1 if connection error occurs
+
+        print(self._socketID1)
+        print(self._socketID2)
 
         print('Checking XPS connection')
         # If statements to check to make sure that both sockets were created correctly
@@ -99,39 +102,38 @@ class XYZStages(TLStages.Stages):
     # Method for moving the stages a relative distance
     def moveStageRelative(self, direction, distance):
         print('moveStageRelative direction: {}, distance: {}'.format(direction,distance))
-        '''
+
         self._XPSSystem.GroupMoveRelative(self._socketID1,direction,distance)
-        '''
+
 
      # Method for aborting stage movement (aborts all directions)
     def moveStageAbort(self):
         print('moveStageAbort')
-        '''
-        self._XPSSystem.GroupMoveAbort(self._socketID2, self.positioner_X)
-        self._XPSSystem.GroupMoveAbort(self._socketID2, self.positioner_Y)
-        self._XPSSystem.GroupMoveAbort(self._socketID2, self.positioner_Z)
-        self._XPSSystem.GroupMoveAbort(self._socketID2, self.macroGroup)
-        '''
+        self._XPSSystem.GroupMoveAbort(self._socketID2, 'XYZ.X') # self.positioner_X)
+        self._XPSSystem.GroupMoveAbort(self._socketID2, 'XYZ.Y') # self.positioner_Y)
+        self._XPSSystem.GroupMoveAbort(self._socketID2, 'XYZ.Z') # self.positioner_Z)
+        self._XPSSystem.GroupMoveAbort(self._socketID2, 'XYZ') # self.macroGroup)
 
     # Method to get the current location of the stage
     def retrieveStagePosition(self):
         print('retrieveStagePosition')
-        return(1.0,2.0,3.0)
-        '''
+        # return(1.0,2.0,3.0)
         # Gets the current location of each axis of the stage
         [_stagePositionXError, _stagePositionX] = self._XPSSystem.GroupPositionCurrentGet(self._socketID1,self.positioner_X,1)
         [_stagePositionYError, _stagePositionY] = self._XPSSystem.GroupPositionCurrentGet(self._socketID1,self.positioner_Y,1)
         [_stagePositionZError, _stagePositionZ] = self._XPSSystem.GroupPositionCurrentGet(self._socketID1,self.positioner_Z,1)
 
         # Retruns the locations
+        print('Stage position:{}, {}, {}'.format(_stagePositionX, _stagePositionY, _stagePositionZ))
         return _stagePositionX, _stagePositionY, _stagePositionZ
-        '''
 
+        '''
         ### TEMP return for testing
         _stagePositionX = 1.0
         _stagePositionY = 2.0
         _stagePositionZ = 3.0
         return (_stagePositionX, _stagePositionY, _stagePositionZ)
+        '''
 
     # Method to check if the stages are moving
     def checkMotionStatus(self):

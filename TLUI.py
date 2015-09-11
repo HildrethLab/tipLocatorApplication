@@ -39,7 +39,7 @@ class TLUI(TLUIBase.Ui_TipLocator):
         self.initializeSystemController(self.queue_SCtoUI,self.queue_routineLoop,self.pipe_UItoPixel2)
 
         # Creates a camera that will be used for video processing
-        self.camera = SimpleCV.Camera()
+        self.camera = SimpleCV.Camera(1)
         # Desired threshold value for processing the video
         self.thresholdValue = 0.90
 
@@ -207,7 +207,7 @@ class TLUI(TLUIBase.Ui_TipLocator):
             # print('Command received from pixel process: {}'.format(commandFromPixel))
 
             if commandFromPixel == 'scatteringEventDetected':
-                # print('UI received command to stop processing video')
+                print('UI received command to stop processing video')
                 processVideoRunning = False
 
 

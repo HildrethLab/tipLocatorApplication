@@ -14,7 +14,7 @@ import TLEquipment
 import TLParameters
 
 class PixelCounter(TLEquipment.Equipment):
-    def __init__(self,queue_SCtoPixelCounter,pipe_UItoPixel2):
+    def __init__(self,queue_SCtoPixelCounter,pipe_UItoPixel2,pixelThresholdValue):
         # print('Pixel Counter init accessed')
         # Initializes the inherited class
         TLEquipment.Equipment.__init__(self)
@@ -33,7 +33,7 @@ class PixelCounter(TLEquipment.Equipment):
         self.thresholdValue = 0.90
 
         # Value that will be classified as a triggering event
-        self.pixelTriggerValue = 10000
+        self.pixelTriggerValue = pixelThresholdValue
 
 
     # Method for counting the number of red pixels on the screen

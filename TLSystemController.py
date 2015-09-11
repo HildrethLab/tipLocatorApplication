@@ -46,7 +46,7 @@ class SystemController():
         }
 
         # Sets the desired number of pixels threshold that will trigger the scattering event
-        self.thresholdPixelCount = 100000
+        self.thresholdPixelCount = 400000
 
     ## Method to run the system controller loop
     # The loop is always running and responds based on the commands received from the pipe
@@ -175,7 +175,7 @@ class SystemController():
         # Creates the queues for communication with pixel counter
         queue_SCtoPixelCounter = multiprocessing.Queue()
         # Creates the pixel counter that will be used for the routine
-        routinePixelCounter = TLPixelCounter.PixelCounter(queue_SCtoPixelCounter,self.pipe_UItoPixel2)
+        routinePixelCounter = TLPixelCounter.PixelCounter(queue_SCtoPixelCounter,self.pipe_UItoPixel2,self.thresholdPixelCount)
         # print('Creating video process')
         self.routinePixelCounterProcess = multiprocessing.Process(target=routinePixelCounter.run, args=())
         self.routinePixelCounterProcess.daemon = True
