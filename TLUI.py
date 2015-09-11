@@ -11,13 +11,14 @@ import sys # Allows interaction with system
 import multiprocessing # Allows access to processes and their commands
 import SimpleCV
 import cv2
+import time
 # Custom modules
-import tipLocatorUIBase # Base UI that will be inherited
-import tipLocatorSystemController # System controller class
-import tipLocatorParameters
+import TLUIBase # Base UI that will be inherited
+import TLSystemController # System controller class
+import TLParameters
 
 # Primary UI class that inherits from the base UI
-class tipLocatorUI(tipLocatorUIBase.Ui_TipLocator):
+class TLUI(TLUIBase.Ui_TipLocator):
     def __init__(self):
         # Initializes the QWidget superclass
         QtGui.QWidget.__init__(self)
@@ -28,13 +29,14 @@ class tipLocatorUI(tipLocatorUIBase.Ui_TipLocator):
 
         # Creates the queues for communicating between processes
         self.queue_SCtoUI = multiprocessing.Queue()
+        self.queue_routineLoop = multiprocessing.Queue()
         (self.pipe_UItoPixel1,self.pipe_UItoPixel2) = multiprocessing.Pipe()
 
         # Moves the UI to the top left corner of the screen
         self.move(0,0)
 
         # Initializes the system controller
-        self.initializeSystemController(self.queue_SCtoUI,self.pipe_UItoPixel2)
+        self.initializeSystemController(self.queue_SCtoUI,self.queue_routineLoop,self.pipe_UItoPixel2)
 
         # Creates a camera that will be used for video processing
         self.camera = SimpleCV.Camera()
@@ -76,10 +78,8 @@ class tipLocatorUI(tipLocatorUIBase.Ui_TipLocator):
         try:
             # Sends shut down command to system controller
             self.queue_SCtoUI.put('shutDown')
-            # Ends the video feed
-            tipLocatorParameters.videoFeed = None
             # Ends the camera
-            tipLocatorParameters.camera = None
+            self.camera = None
             # Ends the system controller process
             self.systemControllerProcess.terminate()
             print('Processes terminated')
@@ -121,8 +121,28 @@ class tipLocatorUI(tipLocatorUIBase.Ui_TipLocator):
         except:
             print('Main routine failed to start')
 
-        # Begins processing the video feed
-        self.processVideo()
+        # Sets variable used to keep routine running until complete
+        routineRunning = True
+
+        # Pauses before beginning the routine loop
+        # Main tip locator routine
+        while routineRunning:
+            # print('Routine loop')
+            QtGui.QApplication.processEvents()
+            if not self.queue_routineLoop.empty():
+                command = self.queue_routineLoop.get()
+                print('Command received by the UI: {}'.format(command))
+
+                if command == 'Start video processing':
+                    # print('Starting to process video feed')
+                    self.processVideo()
+                    # print('Finished processing video')
+
+                elif command == 'End routine loop':
+                    # print('Ending routine loop')
+                    routineRunning = False
+            # print('Sending movement command')
+            time.sleep(.5)
 
     # Method for when the initial position button is clicked
     def moveToInitialPosition(self):
@@ -135,35 +155,35 @@ class tipLocatorUI(tipLocatorUIBase.Ui_TipLocator):
             print('Failed to move stages to initial position')
 
     # Method for starting the system controller
-    def initializeSystemController(self,queue_SCtoUI,pipe_UItoPixel2):
-        print('initializeSystemController accessed')
+    def initializeSystemController(self,queue_SCtoUI,queue_routineLoop,pipe_UItoPixel2):
+        # print('initializeSystemController accessed')
         ## Starting the system controller
         # Creates an instance of the system controller
-        print('Creating system controller')
-        self.systemController = tipLocatorSystemController.systemController(queue_SCtoUI,pipe_UItoPixel2)
+        # print('Creating system controller')
+        self.systemController = TLSystemController.SystemController(queue_SCtoUI,queue_routineLoop,pipe_UItoPixel2)
         # Creates a thread from the system controller
-        print('Creating process for system controller')
+        # print('Creating process for system controller')
         self.systemControllerProcess = multiprocessing.Process(target=self.systemController.run, args=())
         # Makes the system controller thread a not daemon process so it can spawn additional processes
-        print('Setting system controller process as not daemon')
+        # print('Setting system controller process as not daemon')
         self.systemControllerProcess.daemon = False
         # Starts the system controller thread
-        print('Starting the system controller process')
+        # print('Starting the system controller process')
         self.systemControllerProcess.start()
 
     # Method for processing the video feed
     def processVideo(self):
-        print('processVideo accessed')
+        # print('processVideo accessed')
         # Sets the video processing loop variable to true
         processVideoRunning = True
-        print('Starting processVideo loop')
+        # Creates a camera that will be used to capture the video feed
+        # camera = SimpleCV.Camera()
+        # print('Starting processVideo loop')
         # While loop for processing the video feed
         while processVideoRunning:
             # print('Inside processVideo loop')
             # Command to manually process GUI events each iteration of the control loop
             QtGui.QApplication.processEvents()
-            # Creates a camera that will be used to capture the video feed
-            # camera = SimpleCV.Camera()
             # Creates the video feed form the camera for processing
             videoFeed = self.camera.getImage()
             # Creates a blank video feed for merging desired channel into
@@ -179,30 +199,35 @@ class tipLocatorUI(tipLocatorUIBase.Ui_TipLocator):
             pixelSumMatrix = videoFeedConverted.getNumpy()
             # Counts the number of elements in the matrix with a value greater than 0, this is the number of colored pixels
             pixelSum = cv2.countNonZero(pixelSumMatrix[:,:,0])
-            print(pixelSum)
             # Sends the number of pixels counted down the UI to pixel pipe
             self.pipe_UItoPixel1.send(pixelSum)
             # Checks to see if a scattering event detected message has been received and ends video processing loop if it has
-            if self.pipe_UItoPixel1.recv() == 'scatteringEventDetected':
+
+            commandFromPixel = self.pipe_UItoPixel1.recv()
+            # print('Command received from pixel process: {}'.format(commandFromPixel))
+
+            if commandFromPixel == 'scatteringEventDetected':
+                # print('UI received command to stop processing video')
                 processVideoRunning = False
-                print('UI received command to stop processing video')
+
 
         # Sends a final message down the pipe to show it is the end of the video processing (used to clear the pipe)
+        # print('Sending end of pixel count command')
         self.pipe_UItoPixel1.send('End of pixel count')
-        print('Done processing video')
+        # print('Done processing video')
 
 # Main function that loads and runs the UI for testing
 def tipLocatorApplicationMain():
-    print('tipLocatorApplicationMain accessed')
+    # print('tipLocatorApplicationMain accessed')
     ## Loading and displaying the UI
     # Creates the GUI application
-    print('Creating GUI application')
+    # print('Creating GUI application')
     app = QtGui.QApplication(sys.argv)
     # Creates the class instance defining what to display
-    print('Creating an instance of the UI')
-    ex = tipLocatorUI()
+    # print('Creating an instance of the UI')
+    ex = TLUI()
     # Shows the class instance
-    print('Showing the instance of the UI')
+    # print('Showing the instance of the UI')
     ex.show()
     # Exits the program when the GUI application is exited
     sys.exit(app.exec_())

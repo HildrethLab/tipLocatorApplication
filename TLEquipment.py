@@ -8,6 +8,7 @@ Generic equipment class that will be inherited by all equipmnet
 # Custom modules
 
 # Generic equipment class for inheritance
-class equipment():
+class Equipment():
     def __init__(self):
-        print('Equipment Initialized')
+        # print('Equipment Initialized')
+        pass

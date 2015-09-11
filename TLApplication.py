@@ -10,14 +10,14 @@ import sys # Allows interaction with system
 from PyQt4 import QtGui, QtCore # Allows for the loading and control of the UI
 import multiprocessing
 # Custom modules
-import tipLocatorUI # User interface for the application
-import tipLocatorSystemController # System controller for the application
-import tipLocatorParameters
+import TLUI # User interface for the application
+import TLSystemController # System controller for the application
+import TLParameters
 
 def tipLocatorApplication():
     # print('Application run')
     # Initializes the global parameters
-    tipLocatorParameters.init()
+    TLParameters.init()
     # Calls the UI launch function
     launchUI()
 
@@ -30,7 +30,7 @@ def launchUI():
     app = QtGui.QApplication(sys.argv)
     # Creates the class instance defining what to display
     # print('Creating an instance of the UI')
-    ex = tipLocatorUI.tipLocatorUI()
+    ex = TLUI.TLUI()
     # Shows the class instance
     # print('Showing the instance of the UI')
     ex.show()
@@ -41,7 +41,7 @@ def launchUI():
 def launchSystemController():
     ## Starting the system controller
     # Creates an instance of the system controller
-    systemController = tipLocatorSystemController.systemController()
+    systemController = TLSystemController.SystemController()
     # Creates a thread from the system controller
     systemControllerProcess = multiprocessing.Process(target=systemController.run, args=())
     # Makes the system controller thread a daemon thread
