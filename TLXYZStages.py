@@ -104,10 +104,10 @@ class XYZStages(TLStages.Stages):
      # Method for aborting stage movement (aborts all directions)
     def moveStageAbort(self):
         print('moveStageAbort')
-        self._XPSSystem.GroupMoveAbort(self._socketID1, self.positioner_X)
-        self._XPSSystem.GroupMoveAbort(self._socketID1, self.positioner_Y)
-        self._XPSSystem.GroupMoveAbort(self._socketID1, self.positioner_Z)
-        self._XPSSystem.GroupMoveAbort(self._socketID1, self.macroGroup)
+        self._XPSSystem.GroupMoveAbort(self._socketID2, self.positioner_X)
+        self._XPSSystem.GroupMoveAbort(self._socketID2, self.positioner_Y)
+        self._XPSSystem.GroupMoveAbort(self._socketID2, self.positioner_Z)
+        self._XPSSystem.GroupMoveAbort(self._socketID2, self.macroGroup)
 
     # Method to get the current location of the stage
     def retrieveStagePosition(self):

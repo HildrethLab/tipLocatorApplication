@@ -47,7 +47,7 @@ class PixelCounter(TLEquipment.Equipment):
             # print ('There are {} pixels in the frame, looking for {} or greater.'.format(pixelSum,self.pixelTriggerValue))
 
         # Informs the UI that a scattering event was detected
-        print('Scattering event detected at {} pixels'.format(pixelSum))
+        # print('Scattering event detected at {} pixels'.format(pixelSum))
         self.pipe_UItoPixel2.send('scatteringEventDetected')
 
         self.queue_SCtoPixelCounter.put(pixelSum)
@@ -55,18 +55,18 @@ class PixelCounter(TLEquipment.Equipment):
         # Calls a method to clear the pixel pipe of any values that were stored before the stop command was processed
         self.clearPixelQueue()
 
-        print('PIXEL COUNTER FINISHED CLEARING THE QUEUE')
+        # print('PIXEL COUNTER FINISHED CLEARING THE QUEUE')
         self.queue_SCtoPixelCounter.put('Pixel counter finished')
 
      # Method to remove all entries from the pixel queue
     def clearPixelQueue(self):
-        print('Starting to empty pixel count pipe')
+        # print('Starting to empty pixel count pipe')
         # Sets a continue emptying queue to true
         continueEmptyingQueue = True
         # Runs a loop until the queue is empty
         while continueEmptyingQueue:
             nextPipeValue = self.pipe_UItoPixel2.recv()
             if nextPipeValue == 'End of pixel count':
-                print('Pixel count pipe is empty')
+                # print('Pixel count pipe is empty')
                 break
-            print('Current pixel count pipe value: {}'.format(nextPipeValue))
+            # print('Current pixel count pipe value: {}'.format(nextPipeValue))

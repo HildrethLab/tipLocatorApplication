@@ -87,31 +87,39 @@ class SystemController():
         ## Data point collection
         # Loop that runs 6 times to collect 6 data points
         for i in range(dataPoints):
-            print('Collecting data point {}'.format(i))
+            # print('Collecting data point {}'.format(i))
             # Initializing stage movement
             # Sends the movement direction to the queue to be read
-            print('Sending direction to queue')
+            # print('Sending direction to queue')
             self.queue_SCtoUI.put('+Y')
             # Sends the movement distance to the queue to be read
-            print('Sending distance to queue')
+            # print('Sending distance to queue')
             self.queue_SCtoUI.put(routineMovementDistance)
             # Calls the relative stage movement method
-            print('Calling movement method')
-            stages = self.moveStagesRelative()
+            # print('Calling movement method')
+            self.moveStagesRelative()
 
             ## Begins scattering event detection
             # Informs the UI to start processing the video feed
             self.queue_routineLoop.put('Start video processing')
-            print('Starting scattering detection')
+            # print('Starting scattering detection')
             pixelTriggerValue = self.detectScatteringEvent()
+
+
+
+            print("SCATTERING EVENT")
+
+            time.sleep(3)
 
             # Stopping stage movement
             # print('Stopping stage movement')
-            stages.moveStageAbort()
+            # stages.moveStageAbort()
             # Retrieving stage position
             print('Retrieving stage position')
-            [x,y,z] = stages.retrieveStagePosition()
+            [x,y,z] = self.substrateStages.retrieveStagePosition()
             print('Stage position: {},{},{}'.format(x,y,z))
+
+
 
             # Creates a data point with the stage position and pixel coiunt
             TLDataClass.TLData(x,y,z,pixelTriggerValue)
@@ -123,7 +131,7 @@ class SystemController():
 
     # Method to watch for scattering event
     def detectScatteringEvent(self):
-        print('detectScatteringEvent accessed')
+        # print('detectScatteringEvent accessed')
         # Creates the queues for communication with pixel counter
         queue_SCtoPixelCounter = multiprocessing.Queue()
         # Creates the pixel counter that will be used for the routine
@@ -214,7 +222,16 @@ class SystemController():
         movementProcess.start()
         # print('Finished movement process')
 
-        return stageInstance
+        # Test control loop to stop stage movement
+        number = 0
+        while True:
+            print('loop {}'.format(number))
+            if number > 5:
+                print('STOPPING STAGE MOVEMENT')
+                stageInstance.moveStageAbort()
+                break
+            number += 1
+            time.sleep(.25)
 
     # Method to shut down the system controller
     def shutDown(self):
