@@ -46,7 +46,7 @@ class SystemController():
         }
 
         # Sets the desired number of pixels threshold that will trigger the scattering event
-        self.thresholdPixelCount = 100000
+        self.thresholdPixelCount = 200000
 
     ## Method to run the system controller loop
     # The loop is always running and responds based on the commands received from the pipe
