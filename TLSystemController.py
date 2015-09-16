@@ -76,28 +76,55 @@ class SystemController():
         # Initializes the stages
         self.substrateStages.initializeStages()
 
+        pass
+
     ## Routine methods
     # Method to start the tip locator routine
     def tipLocatorRoutine(self):
         print('Tip locator routine started')
         # Specifies max distance to move the stages while looking for a scattering event
-        routineMovementDistance = 5.0
+        routineMovementDistances = {
+            '1':[5],
+            '2':[-5],
+            '3':[5],
+            '4':[-5],
+            '5':[5],
+            '6':[-5],
+        }
+        routineMovementDirections = {
+            '1':self.substrateStages.positioner_Y,
+            '2':self.substrateStages.positioner_Y,
+            '3':self.substrateStages.positioner_Y,
+            '4':self.substrateStages.positioner_Y,
+            '5':self.substrateStages.positioner_Y,
+            '6':self.substrateStages.positioner_Y,
+        }
         dataPoints = 6
+
+        routineStartingLocations = {
+            '1':[0.0,0.0,-5.0],
+            '2':[0.0,1.0,-5.0],
+            '3':[0.5,0.0,-5.0],
+            '4':[0.5,1.0,-5.0],
+            '5':[1.0,0.0,-5.0],
+            '6':[1.0,1.0,-5.0],
+        }
+
+        # Creates an instance of the stages
+        routineStages = TLXYZStages.XYZStages()
+        routineStages.initializeStages()
 
         ## Data point collection
         # Loop that runs 6 times to collect 6 data points
         for i in range(dataPoints):
-            # print('Collecting data point {}'.format(i))
-            # Initializing stage movement
-            # Sends the movement direction to the queue to be read
-            # print('Sending direction to queue')
-            self.queue_SCtoUI.put('+Y')
-            # Sends the movement distance to the queue to be read
-            # print('Sending distance to queue')
-            self.queue_SCtoUI.put(routineMovementDistance)
-            # Calls the relative stage movement method
-            # print('Calling movement method')
-            self.moveStagesRelative()
+            # Moves the stages to the starting position for each scan
+            print('Moving to starting position {}'.format(i+1))
+            self.substrateStages.moveStageAbsolute(self.substrateStages.macroGroup,routineStartingLocations[str(i+1)])
+
+            # Creates the thread for the stages that will be moving in the routine
+            print('Starting routine stage movement')
+            routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(routineMovementDirections[str(i+1)],routineMovementDistances[str(i+1)]))
+            routineStagesThread.start()
 
             ## Begins scattering event detection
             # Informs the UI to start processing the video feed
@@ -105,21 +132,13 @@ class SystemController():
             # print('Starting scattering detection')
             pixelTriggerValue = self.detectScatteringEvent()
 
-
-
-            print("SCATTERING EVENT")
-
-            time.sleep(3)
-
-            # Stopping stage movement
             # print('Stopping stage movement')
-            # stages.moveStageAbort()
-            # Retrieving stage position
+            routineStages.moveStageAbort()
+
+            #Retrieving stage position
             print('Retrieving stage position')
-            [x,y,z] = self.substrateStages.retrieveStagePosition()
+            [x,y,z] = routineStages.retrieveStagePosition()
             print('Stage position: {},{},{}'.format(x,y,z))
-
-
 
             # Creates a data point with the stage position and pixel coiunt
             TLDataClass.TLData(x,y,z,pixelTriggerValue)
@@ -190,7 +209,7 @@ class SystemController():
 
     # Method to move the stages to a relative location
     # Attempting to use a instance version of the stages for the movement to see if this fixes the errors
-    def moveStagesRelative(self):
+    def moveStagesRelativeNEW(self):
         print('moveStagesRelative accessed')
         # Pulls the movement direction from the UI / system controller queue
         direction = self.queue_SCtoUI.get()
@@ -219,20 +238,8 @@ class SystemController():
         movementProcess.start()
         # print('Finished movement process')
 
-        # Test control loop to stop stage movement
-        number = 0
-        while True:
-            print('loop {}'.format(number))
-            if number > 5:
-                print('STOPPING STAGE MOVEMENT')
-                self.substrateStages.moveStageAbort()
-                break
-            number += 1
-            time.sleep(.25)
-
-
     # Method to move the stages to a relative location
-    def moveStagesRelativeOLD(self):
+    def moveStagesRelative(self):
         print('moveStagesRelative accessed')
         # Pulls the movement direction from the UI / system controller queue
         direction = self.queue_SCtoUI.get()
@@ -264,16 +271,16 @@ class SystemController():
         movementProcess.start()
         # print('Finished movement process')
 
-        # Test control loop to stop stage movement
-        number = 0
-        while True:
-            print('loop {}'.format(number))
-            if number > 5:
-                print('STOPPING STAGE MOVEMENT')
-                stageInstance.moveStageAbort()
-                break
-            number += 1
-            time.sleep(.25)
+        # # Test control loop to stop stage movement
+        # number = 0
+        # while True:
+        #     print('loop {}'.format(number))
+        #     if number > 5:
+        #         print('STOPPING STAGE MOVEMENT')
+        #         stageInstance.moveStageAbort()
+        #         break
+        #     number += 1
+        #     time.sleep(.25)
 
     # Method to shut down the system controller
     def shutDown(self):

@@ -9,6 +9,7 @@ This module has all of the functionality for the UI
 from PyQt4 import QtGui, QtCore # Allows for the use of PyQt functionality
 import sys # Allows interaction with system
 import multiprocessing # Allows access to processes and their commands
+import threading
 import SimpleCV
 import cv2
 import time
@@ -80,9 +81,9 @@ class TLUI(TLUIBase.Ui_TipLocator):
             self.queue_SCtoUI.put('shutDown')
             # Ends the camera
             self.camera = None
-            # Ends the system controller process
-            self.systemControllerProcess.terminate()
-            print('Processes terminated')
+            # # Ends the system controller process
+            # self.systemControllerProcess.terminate()
+            # print('Processes terminated')
         except:
             print('Failed to shutdown system controller process')
         sys.exit()
@@ -163,10 +164,10 @@ class TLUI(TLUIBase.Ui_TipLocator):
         self.systemController = TLSystemController.SystemController(queue_SCtoUI,queue_routineLoop,pipe_UItoPixel2)
         # Creates a thread from the system controller
         # print('Creating process for system controller')
-        self.systemControllerProcess = multiprocessing.Process(target=self.systemController.run, args=())
+        self.systemControllerProcess = threading.Thread(target=self.systemController.run, args=())
         # Makes the system controller thread a not daemon process so it can spawn additional processes
         # print('Setting system controller process as not daemon')
-        self.systemControllerProcess.daemon = False
+        self.systemControllerProcess.daemon = True
         # Starts the system controller thread
         # print('Starting the system controller process')
         self.systemControllerProcess.start()
