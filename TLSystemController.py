@@ -131,7 +131,7 @@ class SystemController():
 
     # Method to watch for scattering event
     def detectScatteringEvent(self):
-        # print('detectScatteringEvent accessed')
+        print('detectScatteringEvent accessed')
         # Creates the queues for communication with pixel counter
         queue_SCtoPixelCounter = multiprocessing.Queue()
         # Creates the pixel counter that will be used for the routine
@@ -174,7 +174,7 @@ class SystemController():
         self.substrateStages.moveStageAbort()
 
     ## Movement commands
-    # Method to move the stages to the start position (not determined yet so (0,0,0)
+    # Method to move the stages to the start position (not determined yet so (0,0,-5)
     def moveStageToInitialPosition(self):
         print('moveStagesToOrigin accessed')
         # Sends absolute movement command to stages
@@ -188,9 +188,51 @@ class SystemController():
         print(x,y,z)
         return(x,y,z)
 
+    # Method to move the stages to a relative location
+    # Attempting to use a instance version of the stages for the movement to see if this fixes the errors
+    def moveStagesRelative(self):
+        print('moveStagesRelative accessed')
+        # Pulls the movement direction from the UI / system controller queue
+        direction = self.queue_SCtoUI.get()
+        # Pulls the movement distance from the UI / system controller queue
+        distance = self.queue_SCtoUI.get()
+
+        print('Moving stages in {} by {}'.format(direction,distance))
+
+
+        # Determines the direction multiplier based on the direction sent
+        directionMultiplier = self._movementDirectionDictionary[direction]
+
+        # Pulls the correct direction name for the stages based on the direction of movement
+        if (direction == '-X') or (direction == '+X'):
+            direction = self.substrateStages.positioner_X
+        elif (direction == '-Y') or (direction == '+Y'):
+            direction = self.substrateStages.positioner_Y
+        elif (direction == '-Z') or (direction == '+Z'):
+            direction = self.substrateStages.positioner_Z
+
+
+        # Sends relative movement command to stages on a new process
+        # print('Creating movement process')
+        movementProcess = threading.Thread(target=self.substrateStages.moveStageRelative,args=(direction,[distance * directionMultiplier]))
+        # print('Starting movement process')
+        movementProcess.start()
+        # print('Finished movement process')
+
+        # Test control loop to stop stage movement
+        number = 0
+        while True:
+            print('loop {}'.format(number))
+            if number > 5:
+                print('STOPPING STAGE MOVEMENT')
+                self.substrateStages.moveStageAbort()
+                break
+            number += 1
+            time.sleep(.25)
+
 
     # Method to move the stages to a relative location
-    def moveStagesRelative(self):
+    def moveStagesRelativeOLD(self):
         print('moveStagesRelative accessed')
         # Pulls the movement direction from the UI / system controller queue
         direction = self.queue_SCtoUI.get()

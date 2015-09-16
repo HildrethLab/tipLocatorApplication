@@ -39,7 +39,7 @@ class TLUI(TLUIBase.Ui_TipLocator):
         self.initializeSystemController(self.queue_SCtoUI,self.queue_routineLoop,self.pipe_UItoPixel2)
 
         # Creates a camera that will be used for video processing
-        self.camera = SimpleCV.Camera(1)
+        self.camera = SimpleCV.Camera()
         # Desired threshold value for processing the video
         self.thresholdValue = 0.90
 
