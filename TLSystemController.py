@@ -82,7 +82,9 @@ class SystemController():
     # Method to start the tip locator routine
     def tipLocatorRoutine(self):
         print('Tip locator routine started')
-        # Specifies max distance to move the stages while looking for a scattering event
+        # Number of routine passes that will occur
+        dataPoints = 6
+        # Dictionary of the max movement distance for each routine pass
         routineMovementDistances = {
             '1':[5],
             '2':[-5],
@@ -91,6 +93,7 @@ class SystemController():
             '5':[5],
             '6':[-5],
         }
+        # Dictionary for the movement direction for each routine pass
         routineMovementDirections = {
             '1':self.substrateStages.positioner_Y,
             '2':self.substrateStages.positioner_Y,
@@ -99,8 +102,7 @@ class SystemController():
             '5':self.substrateStages.positioner_Y,
             '6':self.substrateStages.positioner_Y,
         }
-        dataPoints = 6
-
+        # Dictionary for the starting location for each routine pass
         routineStartingLocations = {
             '1':[0.0,0.0,-5.0],
             '2':[0.0,1.0,-5.0],
@@ -110,7 +112,7 @@ class SystemController():
             '6':[1.0,1.0,-5.0],
         }
 
-        # Creates an instance of the stages
+        # Creates an instance of the stages for the routine
         routineStages = TLXYZStages.XYZStages()
         routineStages.initializeStages()
 
