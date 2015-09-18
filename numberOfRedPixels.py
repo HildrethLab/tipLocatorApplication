@@ -10,6 +10,32 @@ import numpy as np
 import cv2
 import time
 
+processVideoRunning = True
+camera = SimpleCV.Camera(0)
+thresholdValue = 0.56
+
+while processVideoRunning:
+    # print('Inside processVideo loop')
+    # Creates the video feed form the camera for processing
+    videoFeed = camera.getImage()
+    # Creates a blank video feed for merging desired channel into
+    videoFeedBlank = videoFeed * 0
+    # Splits the video into its three color channels
+    (redVideoChannel, greenVideoChannel, blueVideoChannel) = videoFeed.splitChannels()
+    # Merges the red video channel into all three color channels of blank video feed to create grayscale video
+    videoFeedConverted = videoFeedBlank.mergeChannels(redVideoChannel,redVideoChannel,redVideoChannel)
+    # Threasholds video based on the specified threshold value
+    videoFeedConverted = videoFeedConverted.binarize(255 * thresholdValue).invert()
+
+    # Creates a matrix of values for video feed
+    pixelSumMatrix = videoFeedConverted.getNumpy()
+    # Counts the number of elements in the matrix with a value greater than 0, this is the number of colored pixels
+    pixelSum = cv2.countNonZero(pixelSumMatrix[:,:,0])
+    print(pixelSum)
+    time.sleep(.1)
+
+
+'''
 # Initiates the display and the camera that will be used
 display = SimpleCV.Display()
 camera = SimpleCV.Camera()
@@ -74,3 +100,4 @@ while display.isNotDone():
         videoFeedConverted.save(display)
         # redVideoChannel.threshold(thresholdValue).save(display)
 
+'''

@@ -9,6 +9,7 @@ into the UI.
 import multiprocessing # Allows us to access process controls
 import threading # Allows for the usage of threads (TESTING)
 import time # TEMPT FOR TESTING
+import csv
 # Custom modules
 import TLXYZStages # Specific XPS stages
 import TLPixelCounter # Method to counter number of pixels on screen
@@ -46,7 +47,7 @@ class SystemController():
         }
 
         # Sets the desired number of pixels threshold that will trigger the scattering event
-        self.thresholdPixelCount = 400000
+        self.thresholdPixelCount = 100
 
     ## Method to run the system controller loop
     # The loop is always running and responds based on the commands received from the pipe
@@ -83,33 +84,33 @@ class SystemController():
     def tipLocatorRoutine(self):
         print('Tip locator routine started')
         # Number of routine passes that will occur
-        dataPoints = 6
+        dataPoints = 20
         # Dictionary of the max movement distance for each routine pass
         routineMovementDistances = {
-            '1':[5],
-            '2':[-5],
-            '3':[5],
-            '4':[-5],
-            '5':[5],
-            '6':[-5],
+            '1':[2],
+            '2':[2],
+            '3':[2],
+            '4':[2],
+            '5':[2],
+            '6':[2],
         }
         # Dictionary for the movement direction for each routine pass
         routineMovementDirections = {
-            '1':self.substrateStages.positioner_Y,
-            '2':self.substrateStages.positioner_Y,
-            '3':self.substrateStages.positioner_Y,
-            '4':self.substrateStages.positioner_Y,
-            '5':self.substrateStages.positioner_Y,
-            '6':self.substrateStages.positioner_Y,
+            '1':self.substrateStages.positioner_X,
+            '2':self.substrateStages.positioner_X,
+            '3':self.substrateStages.positioner_X,
+            '4':self.substrateStages.positioner_X,
+            '5':self.substrateStages.positioner_X,
+            '6':self.substrateStages.positioner_X,
         }
         # Dictionary for the starting location for each routine pass
         routineStartingLocations = {
-            '1':[0.0,0.0,-5.0],
-            '2':[0.0,1.0,-5.0],
-            '3':[0.5,0.0,-5.0],
-            '4':[0.5,1.0,-5.0],
-            '5':[1.0,0.0,-5.0],
-            '6':[1.0,1.0,-5.0],
+            '1':[57.1,-8,8.943],
+            '2':[57.1,-8,8.943],
+            '3':[57.1,-8,8.943],
+            '4':[57.1,-8,8.943],
+            '5':[57.1,-8,8.943],
+            '6':[57.1,-8,8.943],
         }
 
         # Creates an instance of the stages for the routine
@@ -119,14 +120,26 @@ class SystemController():
         ## Data point collection
         # Loop that runs 6 times to collect 6 data points
         for i in range(dataPoints):
+            # # Moves the stages to the starting position for each scan
+            # print('Moving to starting position {}'.format(i+1))
+            # self.substrateStages.moveStageAbsolute(self.substrateStages.macroGroup,routineStartingLocations[str(i+1)])
+            #
+            # # Creates the thread for the stages that will be moving in the routine
+            # print('Starting routine stage movement')
+            # routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(routineMovementDirections[str(i+1)],routineMovementDistances[str(i+1)]))
+            # routineStagesThread.start()
+
+            #### FOR TESTING #### Checking to see the spread of the scattering detection location
             # Moves the stages to the starting position for each scan
-            print('Moving to starting position {}'.format(i+1))
-            self.substrateStages.moveStageAbsolute(self.substrateStages.macroGroup,routineStartingLocations[str(i+1)])
+            print('Moving to starting position {}'.format(1))
+            self.substrateStages.moveStageAbsolute(self.substrateStages.macroGroup,routineStartingLocations[str(1)])
 
             # Creates the thread for the stages that will be moving in the routine
             print('Starting routine stage movement')
-            routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(routineMovementDirections[str(i+1)],routineMovementDistances[str(i+1)]))
+            routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(routineMovementDirections[str(1)],routineMovementDistances[str(1)]))
             routineStagesThread.start()
+            ##### END OF TESTING #####
+
 
             ## Begins scattering event detection
             # Informs the UI to start processing the video feed
@@ -210,37 +223,6 @@ class SystemController():
         return(x,y,z)
 
     # Method to move the stages to a relative location
-    # Attempting to use a instance version of the stages for the movement to see if this fixes the errors
-    def moveStagesRelativeNEW(self):
-        print('moveStagesRelative accessed')
-        # Pulls the movement direction from the UI / system controller queue
-        direction = self.queue_SCtoUI.get()
-        # Pulls the movement distance from the UI / system controller queue
-        distance = self.queue_SCtoUI.get()
-
-        print('Moving stages in {} by {}'.format(direction,distance))
-
-
-        # Determines the direction multiplier based on the direction sent
-        directionMultiplier = self._movementDirectionDictionary[direction]
-
-        # Pulls the correct direction name for the stages based on the direction of movement
-        if (direction == '-X') or (direction == '+X'):
-            direction = self.substrateStages.positioner_X
-        elif (direction == '-Y') or (direction == '+Y'):
-            direction = self.substrateStages.positioner_Y
-        elif (direction == '-Z') or (direction == '+Z'):
-            direction = self.substrateStages.positioner_Z
-
-
-        # Sends relative movement command to stages on a new process
-        # print('Creating movement process')
-        movementProcess = threading.Thread(target=self.substrateStages.moveStageRelative,args=(direction,[distance * directionMultiplier]))
-        # print('Starting movement process')
-        movementProcess.start()
-        # print('Finished movement process')
-
-    # Method to move the stages to a relative location
     def moveStagesRelative(self):
         print('moveStagesRelative accessed')
         # Pulls the movement direction from the UI / system controller queue
@@ -253,6 +235,9 @@ class SystemController():
         # Creates an instance of the stages to use for relative movement
         stageInstance = TLXYZStages.XYZStages()
         stageInstance.initializeStages()
+
+        # Changes the stage velocity
+        stageInstance.updateStageVelocity(1)
 
         # Determines the direction multiplier based on the direction sent
         directionMultiplier = self._movementDirectionDictionary[direction]
@@ -273,16 +258,8 @@ class SystemController():
         movementProcess.start()
         # print('Finished movement process')
 
-        # # Test control loop to stop stage movement
-        # number = 0
-        # while True:
-        #     print('loop {}'.format(number))
-        #     if number > 5:
-        #         print('STOPPING STAGE MOVEMENT')
-        #         stageInstance.moveStageAbort()
-        #         break
-        #     number += 1
-        #     time.sleep(.25)
+        # Changes the stage velocity
+        stageInstance.updateStageVelocity(0.1)
 
     # Method to shut down the system controller
     def shutDown(self):
@@ -292,5 +269,11 @@ class SystemController():
     # Method to retrieve all of the data points
     def retrieveDataPoints(self):
 
+        dataFile = open('testData.csv','wt')
+        dataWriter = csv.writer(dataFile)
+
         for dataSet in TLParameters.kHNSCTL_dataStorageInstances:
             print ('Current coordinate points collected: {}, {}, {} with {} pixels triggering the event.'.format(dataSet.x, dataSet.y, dataSet.z,dataSet.pixelTriggerValue))
+            dataWriter.writerow((dataSet.x,dataSet.y,dataSet.z,dataSet.pixelTriggerValue))
+
+        dataFile.close()

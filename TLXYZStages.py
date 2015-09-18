@@ -24,7 +24,7 @@ class XYZStages(TLStages.Stages):
         self.positioner_X = None
         self.positioner_Y = None
         self.positioner_Z = None
-        self.stageVelocity = 0.1
+        self.stageVelocity = 0.01
 
     # TEMP metho for initializing the stages
     def initializeStagesTEST(self):
@@ -34,6 +34,19 @@ class XYZStages(TLStages.Stages):
         self.positioner_X = self.macroGroup + '.X'
         self.positioner_Y = self.macroGroup + '.Y'
         self.positioner_Z = self.macroGroup + '.Z'
+
+    # Method to set the stage velocity
+    def updateStageVelocity(self,velocity):
+        # Retrieves the velocity, acceleration and jerk information from the XPS System
+        [_stage_X_parameterError, _stage_X_velocty, _stage_X_acceleration, _stage_X_minJerkTime, _stage_X_maxJerkTime] = self._XPSSystem.PositionerSGammaParametersGet(self._socketID1,self.positioner_X)
+        [_stage_Y_parameterError, _stage_Y_velocty, _stage_Y_acceleration, _stage_Y_minJerkTime, _stage_Y_maxJerkTime] = self._XPSSystem.PositionerSGammaParametersGet(self._socketID1,self.positioner_Y)
+        [_stage_Z_parameterError, _stage_Z_velocty, _stage_Z_acceleration, _stage_Z_minJerkTime, _stage_Z_maxJerkTime] = self._XPSSystem.PositionerSGammaParametersGet(self._socketID1,self.positioner_Z)
+
+        # Updates the velocty, acceleration and jerk parameters for the XPS system (currently we are only changing the velocity and keeping everything else the same)
+        self._XPSSystem.PositionerSGammaParametersSet(self._socketID1, self.positioner_X, velocity, _stage_X_acceleration, _stage_X_minJerkTime, _stage_X_maxJerkTime)
+        self._XPSSystem.PositionerSGammaParametersSet(self._socketID1, self.positioner_Y, velocity, _stage_Y_acceleration, _stage_Y_minJerkTime, _stage_Y_maxJerkTime)
+        self._XPSSystem.PositionerSGammaParametersSet(self._socketID1, self.positioner_Z, velocity, _stage_Z_acceleration, _stage_Z_minJerkTime, _stage_Z_maxJerkTime)
+
 
     # Method for initializing the stages
     def initializeStages(self):
