@@ -47,7 +47,7 @@ class SystemController():
         }
 
         # Sets the desired number of pixels threshold that will trigger the scattering event
-        self.thresholdPixelCount = 100
+        self.thresholdPixelCount = 5
 
     ## Method to run the system controller loop
     # The loop is always running and responds based on the commands received from the pipe
@@ -84,15 +84,15 @@ class SystemController():
     def tipLocatorRoutine(self):
         print('Tip locator routine started')
         # Number of routine passes that will occur
-        dataPoints = 20
+        dataPoints = 30
         # Dictionary of the max movement distance for each routine pass
         routineMovementDistances = {
-            '1':[2],
-            '2':[2],
-            '3':[2],
-            '4':[2],
-            '5':[2],
-            '6':[2],
+            '1':[-2],
+            '2':[-2],
+            '3':[-2],
+            '4':[-2],
+            '5':[-2],
+            '6':[-2],
         }
         # Dictionary for the movement direction for each routine pass
         routineMovementDirections = {
@@ -105,12 +105,12 @@ class SystemController():
         }
         # Dictionary for the starting location for each routine pass
         routineStartingLocations = {
-            '1':[57.1,-8,8.943],
-            '2':[57.1,-8,8.943],
-            '3':[57.1,-8,8.943],
-            '4':[57.1,-8,8.943],
-            '5':[57.1,-8,8.943],
-            '6':[57.1,-8,8.943],
+            '1':[43.05,-8,5.63],
+            '2':[43.05,-8,5.63],
+            '3':[43.05,-8,5.63],
+            '4':[43.05,-8,5.63],
+            '5':[43.05,-8,5.63],
+            '6':[43.05,-8,5.63],
         }
 
         # Creates an instance of the stages for the routine
