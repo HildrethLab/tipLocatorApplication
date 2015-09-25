@@ -9,6 +9,7 @@ into the UI.
 import multiprocessing # Allows us to access process controls
 import threading # Allows for the usage of threads (TESTING)
 import time # TEMPT FOR TESTING
+import datetime
 import csv
 # Custom modules
 import TLXYZStages # Specific XPS stages
@@ -83,8 +84,11 @@ class SystemController():
     # Method to start the tip locator routine
     def tipLocatorRoutine(self):
         print('Tip locator routine started')
+        # Clears the data storage object
+        TLParameters.kHNSCTL_dataStorageInstances = []
+
         # Number of routine passes that will occur
-        dataPoints = 30
+        dataPoints = 6
         # Dictionary of the max movement distance for each routine pass
         routineMovementDistances = {
             '1':[2],
@@ -105,12 +109,12 @@ class SystemController():
         }
         # Dictionary for the starting location for each routine pass
         routineStartingLocations = {
-            '1':[40.4,-6,5.94],
-            '2':[40.9,-6,5.94],
-            '3':[40.4,-7,5.98],
-            '4':[40.7,-7,5.98],
-            '5':[40.4,-8,6.02],
-            '6':[40.7,-8,6.02],
+            '1':[40.45,-6,5.94],
+            '2':[40.7,-6,5.94],
+            '3':[40.45,-7,5.98],
+            '4':[40.67,-7,5.98],
+            '5':[40.45,-8,6.02],
+            '6':[40.65,-8,6.02],
         }
 
         # Creates an instance of the stages for the routine
@@ -120,25 +124,31 @@ class SystemController():
         ## Data point collection
         # Loop that runs 6 times to collect 6 data points
         for i in range(dataPoints):
-            # # Moves the stages to the starting position for each scan
-            # print('Moving to starting position {}'.format(i+1))
-            # self.substrateStages.moveStageAbsolute(self.substrateStages.macroGroup,routineStartingLocations[str(i+1)])
-            #
-            # # Creates the thread for the stages that will be moving in the routine
-            # print('Starting routine stage movement')
-            # routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(routineMovementDirections[str(i+1)],routineMovementDistances[str(i+1)]))
-            # routineStagesThread.start()
+            # Updates the stages velocity so that they move to the start position faster
+            routineStages.updateStageVelocity(1)
 
-            #### FOR TESTING #### Checking to see the spread of the scattering detection location
             # Moves the stages to the starting position for each scan
-            print('Moving to starting position {}'.format(1))
-            self.substrateStages.moveStageAbsolute(self.substrateStages.macroGroup,routineStartingLocations[str(1)])
+            print('Moving to starting position {}'.format(i+1))
+            self.substrateStages.moveStageAbsolute(self.substrateStages.macroGroup,routineStartingLocations[str(i+1)])
+
+            # Updates the stages velocity so that the routine is run slower
+            routineStages.updateStageVelocity(0.01)
 
             # Creates the thread for the stages that will be moving in the routine
             print('Starting routine stage movement')
-            routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(routineMovementDirections[str(1)],routineMovementDistances[str(1)]))
+            routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(routineMovementDirections[str(i+1)],routineMovementDistances[str(i+1)]))
             routineStagesThread.start()
-            ##### END OF TESTING #####
+
+            # #### FOR TESTING #### Checking to see the spread of the scattering detection location
+            # # Moves the stages to the starting position for each scan
+            # print('Moving to starting position {}'.format(1))
+            # self.substrateStages.moveStageAbsolute(self.substrateStages.macroGroup,routineStartingLocations[str(1)])
+            #
+            # # Creates the thread for the stages that will be moving in the routine
+            # print('Starting routine stage movement')
+            # routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(routineMovementDirections[str(1)],routineMovementDistances[str(1)]))
+            # routineStagesThread.start()
+            # ##### END OF TESTING #####
 
 
             ## Begins scattering event detection
@@ -269,7 +279,7 @@ class SystemController():
     # Method to retrieve all of the data points
     def retrieveDataPoints(self):
 
-        dataFile = open('testData.csv','wt')
+        dataFile = open('data/testData - ' + str(datetime.datetime.now()) + '.csv','wt')
         dataWriter = csv.writer(dataFile)
 
         for dataSet in TLParameters.kHNSCTL_dataStorageInstances:

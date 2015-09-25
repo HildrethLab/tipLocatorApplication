@@ -42,7 +42,7 @@ class TLUI(TLUIBase.Ui_TipLocator):
         # Creates a camera that will be used for video processing
         self.camera = SimpleCV.Camera(0)
         # Desired threshold value for processing the video
-        self.thresholdValue = 0.2
+        self.thresholdValue = 0.55
 
     # Method to add functionality to the UIs buttons
     def buttonFunctionality(self):
@@ -201,7 +201,7 @@ class TLUI(TLUIBase.Ui_TipLocator):
             # Counts the number of elements in the matrix with a value greater than 0, this is the number of colored pixels
             pixelSum = cv2.countNonZero(pixelSumMatrix[:,:,0])
             # Sends the number of pixels counted down the UI to pixel pipe
-            print(pixelSum)
+            # print(pixelSum)
             self.pipe_UItoPixel1.send(pixelSum)
             # Checks to see if a scattering event detected message has been received and ends video processing loop if it has
 
