@@ -12,7 +12,7 @@ import time
 
 processVideoRunning = True
 camera = SimpleCV.Camera(0)
-thresholdValue = 0.56
+thresholdValue = 0.2
 
 while processVideoRunning:
     # print('Inside processVideo loop')

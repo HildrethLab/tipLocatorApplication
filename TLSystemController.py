@@ -87,11 +87,11 @@ class SystemController():
         dataPoints = 30
         # Dictionary of the max movement distance for each routine pass
         routineMovementDistances = {
-            '1':[-2],
+            '1':[2],
             '2':[-2],
-            '3':[-2],
+            '3':[2],
             '4':[-2],
-            '5':[-2],
+            '5':[2],
             '6':[-2],
         }
         # Dictionary for the movement direction for each routine pass
@@ -105,12 +105,12 @@ class SystemController():
         }
         # Dictionary for the starting location for each routine pass
         routineStartingLocations = {
-            '1':[43.05,-8,5.63],
-            '2':[43.05,-8,5.63],
-            '3':[43.05,-8,5.63],
-            '4':[43.05,-8,5.63],
-            '5':[43.05,-8,5.63],
-            '6':[43.05,-8,5.63],
+            '1':[40.4,-6,5.94],
+            '2':[40.9,-6,5.94],
+            '3':[40.4,-7,5.98],
+            '4':[40.7,-7,5.98],
+            '5':[40.4,-8,6.02],
+            '6':[40.7,-8,6.02],
         }
 
         # Creates an instance of the stages for the routine
