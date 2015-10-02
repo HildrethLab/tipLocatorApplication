@@ -10,6 +10,7 @@ from numpy import array, sqrt
 from scipy import optimize
 # Custom modules
 import TLParameters
+import TLDataClass
 
 # Optimization class
 class Optimization():
@@ -18,7 +19,7 @@ class Optimization():
         # Radius of the light entering the lens in mm
         self.radius = 0.5
         # Focal length of the lens in mm
-        self.focalLength = 10
+        self.focalLength = 4
 
         # Initial guess at the solution
         self.initialGuess = array([0.0,0.0,0.0])
@@ -39,12 +40,16 @@ class Optimization():
     def readData(self):
         print('readData accessed')
         # Returns the point data collected
-        return ([point for point in TLParameters.kHNSCTL_dataStorageInstances])
+        for i in range(len(TLParameters.kHNSCTL_dataStorageInstances)):
+            point[i]  = TLParameters.kHNSCTL_dataStorageInstances[i]
 
+        print(point)
     # Method to determine the distance to the cone
     def distanceToCone(self,point):
         print('distanceToCone accessed')
 
+        print(point[0])
+        print(type(point[0]))
         ap = sqrt(point[0]**2 + point[2]**2)
         b = -abs(point[1])
 
@@ -61,3 +66,28 @@ class Optimization():
     # Method to record history
     def recordHistory(self):
         print('recordHistory accessed')
+
+def main():
+    # Loads test data with a known solution
+    ######
+    # Known solutons: -0.22888566,  0.24425689, -0.9640246
+    #####
+    TLDataClass.TLData(0.13736903, -2.09331181,  1.176831, 5)
+    TLDataClass.TLData(0.19324891, -2.23147539,  1.20972186, 5)
+    TLDataClass.TLData(0.35961296, -3.67184001,  1.36968941, 5)
+    TLDataClass.TLData(0.38395479, -2.74271983,  1.23765356, 5)
+    TLDataClass.TLData(0.56420493, -3.09959046,  1.08545504, 5)
+    TLDataClass.TLData(-0.1346031 , -3.68954062,  1.19486776, 5)
+
+    point = []
+
+    for i in range(len(TLParameters.kHNSCTL_dataStorageInstances)):
+        point.append(TLParameters.kHNSCTL_dataStorageInstances[i])
+
+    print(point)
+
+    # optimizationTest = Optimization()
+    # optimizationTest.optimize()
+
+if __name__ == '__main__':
+    main()
