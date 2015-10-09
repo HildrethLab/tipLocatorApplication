@@ -16,6 +16,7 @@ import TLXYZStages # Specific XPS stages
 import TLPixelCounter # Method to counter number of pixels on screen
 import TLParameters # Global parameters shared between the processes
 import TLDataClass # Method holding the data class for the application
+import TLOptimization # Method for optimizing the data collected to find the focal point of the cone
 
 # System controller class that inherits threading
 class SystemController():
@@ -97,24 +98,6 @@ class SystemController():
             '4':[-2],
             '5':[2],
             '6':[-2],
-            '7':[2],
-            '8':[-2],
-            '9':[2],
-            '10':[-2],
-            '11':[2],
-            '12':[-2],
-            '13':[2],
-            '14':[-2],
-            '15':[2],
-            '16':[-2],
-            '17':[2],
-            '18':[-2],
-            '19':[2],
-            '20':[-2],
-            '21':[2],
-            '22':[-2],
-            '23':[2],
-            '24':[-2],
         }
         # Dictionary for the movement direction for each routine pass
         routineMovementDirections = {
@@ -124,56 +107,19 @@ class SystemController():
             '4':self.substrateStages.positioner_X,
             '5':self.substrateStages.positioner_X,
             '6':self.substrateStages.positioner_X,
-            '7':self.substrateStages.positioner_X,
-            '8':self.substrateStages.positioner_X,
-            '9':self.substrateStages.positioner_X,
-            '10':self.substrateStages.positioner_X,
-            '11':self.substrateStages.positioner_X,
-            '12':self.substrateStages.positioner_X,
-            '13':self.substrateStages.positioner_X,
-            '14':self.substrateStages.positioner_X,
-            '15':self.substrateStages.positioner_X,
-            '16':self.substrateStages.positioner_X,
-            '17':self.substrateStages.positioner_X,
-            '18':self.substrateStages.positioner_X,
-            '19':self.substrateStages.positioner_X,
-            '20':self.substrateStages.positioner_X,
-            '21':self.substrateStages.positioner_X,
-            '22':self.substrateStages.positioner_X,
-            '23':self.substrateStages.positioner_X,
-            '24':self.substrateStages.positioner_X,
-
         }
         # Dictionary for the starting location for each routine pass
         routineStartingLocations = {
-            '1':[40.9,-6,6.02],
-            '2':[41.3,-6,6.02],
-            '3':[40.9,-7,6.05],
-            '4':[41.3,-7,6.05],
-            '5':[40.9,-8,6.10],
-            '6':[41.3,-8,6.10],
-            '7':[40.9,-6,6.02],
-            '8':[41.3,-6,6.02],
-            '9':[40.9,-7,6.05],
-            '10':[41.3,-7,6.05],
-            '11':[40.9,-8,6.10],
-            '12':[41.3,-8,6.10],
-            '13':[40.9,-6,6.02],
-            '14':[41.3,-6,6.02],
-            '15':[40.9,-7,6.05],
-            '16':[41.3,-7,6.05],
-            '17':[40.9,-8,6.10],
-            '18':[41.3,-8,6.10],
-            '19':[40.9,-6,6.02],
-            '20':[41.3,-6,6.02],
-            '21':[40.9,-7,6.05],
-            '22':[41.3,-7,6.05],
-            '23':[40.9,-8,6.10],
-            '24':[41.3,-8,6.10],
-
+            '1':[39.7,-6,3.97],
+            '2':[39.9,-6,3.97],
+            '3':[39.6,-7,4.04],
+            '4':[39.8,-7,4.04],
+            '5':[39.5,-8,4.09],
+            '6':[39.7,-8,4.09],
         }
 
         dataPoints = len(routineStartingLocations)
+        # dataPoints = 6
 
         # Creates an instance of the stages for the routine
         routineStages = TLXYZStages.XYZStages()
@@ -230,6 +176,9 @@ class SystemController():
         self.queue_routineLoop.put('End routine loop')
         # Retrieves all of the data points collected
         self.retrieveDataPoints()
+
+        optimization = TLOptimization.Optimization()
+        optimization.optimize()
 
     # Method to watch for scattering event
     def detectScatteringEvent(self):

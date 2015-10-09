@@ -20,7 +20,7 @@ class Optimization():
         # Radius of the light entering the lens in mm
         self.radius = 0.5
         # Focal length of the lens in mm
-        self.focalLength = 4
+        self.focalLength = 10
 
         # Initial guess at the solution
         self.initialGuess = array([0.0,0.0,0.0])
