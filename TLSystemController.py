@@ -98,6 +98,36 @@ class SystemController():
             '4':[-2],
             '5':[2],
             '6':[-2],
+            '7':[2],
+            '8':[-2],
+            '9':[2],
+            '10':[-2],
+            '11':[2],
+            '12':[-2],
+            '13':[2],
+            '14':[-2],
+            '15':[2],
+            '16':[-2],
+            '17':[2],
+            '18':[-2],
+            '19':[2],
+            '20':[-2],
+            '21':[2],
+            '22':[-2],
+            '23':[2],
+            '24':[-2],
+            '25':[2],
+            '26':[-2],
+            '27':[2],
+            '28':[-2],
+            '29':[2],
+            '30':[-2],
+            '31':[2],
+            '32':[-2],
+            '33':[2],
+            '34':[-2],
+            '35':[2],
+            '36':[-2],
         }
         # Dictionary for the movement direction for each routine pass
         routineMovementDirections = {
@@ -107,15 +137,75 @@ class SystemController():
             '4':self.substrateStages.positioner_X,
             '5':self.substrateStages.positioner_X,
             '6':self.substrateStages.positioner_X,
+            '7':self.substrateStages.positioner_X,
+            '8':self.substrateStages.positioner_X,
+            '9':self.substrateStages.positioner_X,
+            '10':self.substrateStages.positioner_X,
+            '11':self.substrateStages.positioner_X,
+            '12':self.substrateStages.positioner_X,
+            '13':self.substrateStages.positioner_X,
+            '14':self.substrateStages.positioner_X,
+            '15':self.substrateStages.positioner_X,
+            '16':self.substrateStages.positioner_X,
+            '17':self.substrateStages.positioner_X,
+            '18':self.substrateStages.positioner_X,
+            '19':self.substrateStages.positioner_X,
+            '20':self.substrateStages.positioner_X,
+            '21':self.substrateStages.positioner_X,
+            '22':self.substrateStages.positioner_X,
+            '23':self.substrateStages.positioner_X,
+            '24':self.substrateStages.positioner_X,
+            '25':self.substrateStages.positioner_X,
+            '26':self.substrateStages.positioner_X,
+            '27':self.substrateStages.positioner_X,
+            '28':self.substrateStages.positioner_X,
+            '29':self.substrateStages.positioner_X,
+            '30':self.substrateStages.positioner_X,
+            '31':self.substrateStages.positioner_X,
+            '32':self.substrateStages.positioner_X,
+            '33':self.substrateStages.positioner_X,
+            '34':self.substrateStages.positioner_X,
+            '35':self.substrateStages.positioner_X,
+            '36':self.substrateStages.positioner_X,
         }
         # Dictionary for the starting location for each routine pass
         routineStartingLocations = {
-            '1':[39.7,-6,3.97],
-            '2':[39.9,-6,3.97],
-            '3':[39.6,-7,4.04],
-            '4':[39.8,-7,4.04],
-            '5':[39.5,-8,4.09],
-            '6':[39.7,-8,4.09],
+            '1':[39.5,-6,4.3],
+            '2':[40.2,-6,4.3],
+            '3':[39.5,-6,4.25],
+            '4':[40.2,-6,4.25],
+            '5':[39.5,-6,4.35],
+            '6':[40.2,-6,4.35],
+            '7':[39.0,-6.5,4.3],
+            '8':[40.2,-6.5,4.3],
+            '9':[39.0,-6.5,4.25],
+            '10':[40.2,-6.5,4.25],
+            '11':[39.0,-6.5,4.35],
+            '12':[40.2,-6.5,4.35],
+            '13':[39.0,-7,4.3],
+            '14':[40.2,-7,4.3],
+            '15':[39.0,-7,4.25],
+            '16':[40.2,-7,4.25],
+            '17':[39.0,-7,4.35],
+            '18':[40.2,-7,4.35],
+            '19':[39.0,-7.5,3.96],
+            '20':[40.2,-7.5,3.96],
+            '21':[39.0,-7.5,3.98],
+            '22':[40.2,-7.5,3.98],
+            '23':[39.0,-7.5,4.00],
+            '24':[40.2,-7.5,4.00],
+            '25':[39.0,-8,3.87],
+            '26':[40.2,-8,3.87],
+            '27':[39.0,-8,3.90],
+            '28':[40.2,-8,3.90],
+            '29':[39.0,-8,3.89],
+            '30':[40.2,-8,3.89],
+            '31':[39.0,-8.5,3.87],
+            '32':[40.2,-8.5,3.87],
+            '33':[39.0,-8.5,3.90],
+            '34':[40.2,-8.5,3.90],
+            '35':[39.0,-8.5,3.89],
+            '36':[40.2,-8.5,3.89],
         }
 
         dataPoints = len(routineStartingLocations)
@@ -133,13 +223,13 @@ class SystemController():
 
             # Moves the stages to the starting position for each scan
             print('Moving to starting position {}'.format(i+1))
-            self.substrateStages.moveStageAbsolute(self.substrateStages.macroGroup,routineStartingLocations[str(i+1)])
+            routineStages.moveStageAbsolute(self.substrateStages.macroGroup,routineStartingLocations[str(i+1)])
 
             # Updates the stages velocity so that the routine is run slower
             routineStages.updateStageVelocity(0.01)
 
             # Creates the thread for the stages that will be moving in the routine
-            print('Starting routine stage movement')
+            # print('Starting routine stage movement')
             routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(routineMovementDirections[str(i+1)],routineMovementDistances[str(i+1)]))
             routineStagesThread.start()
 
@@ -162,19 +252,26 @@ class SystemController():
             pixelTriggerValue = self.detectScatteringEvent()
 
             # Stops the stage movement
-            # print('Stopping stage movement')
             routineStages.moveStageAbort()
 
             ## Begins the vertical movement portion of the routine
             # Sets stage velocity so that the movement occurs quickly
+            # print('Setting Stage Velocity to 1')
             routineStages.updateStageVelocity(1)
+
+            [x,y,z] = routineStages.retrieveStagePosition()
+
             # Move the stages vertically upwards
-            print('Moving the stages upward by .1 mm')
-            self.substrateStages.moveStageRelative(self.substrateStages.positioner_Z, [0.1])
+            # print('Moving the stages upward by .1 mm')
+            routineStages.moveStageAbsolute(routineStages.macroGroup, [x,y,z-0.1])
+
+            # Sets the stage velocity so that the dection occurs slowly
+            # print('Setting Stage Velocity to 1')
+            routineStages.updateStageVelocity(0.01)
 
             # Begin lowering the stages
-            print('Starting routine stage movement')
-            routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(self.substrateStages.positioner_Z,[0.1]))
+            # print('Starting routine stage movement')
+            routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(self.substrateStages.positioner_Z,[0.2]))
             routineStagesThread.start()
 
             ## Begins scattering event detection
@@ -188,7 +285,7 @@ class SystemController():
             routineStages.moveStageAbort()
 
             #Retrieving stage position
-            print('Retrieving stage position')
+            # print('Retrieving stage position')
             [x,y,z] = routineStages.retrieveStagePosition()
             print('Stage position: {},{},{}'.format(x,y,z))
 
@@ -200,8 +297,8 @@ class SystemController():
         # Retrieves all of the data points collected
         self.retrieveDataPoints()
 
-        optimization = TLOptimization.Optimization()
-        optimization.optimize()
+        # optimization = TLOptimization.Optimization()
+        # optimization.optimize()
 
     # Method to watch for scattering event
     def detectScatteringEvent(self):
