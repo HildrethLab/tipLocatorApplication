@@ -161,6 +161,29 @@ class SystemController():
             # print('Starting scattering detection')
             pixelTriggerValue = self.detectScatteringEvent()
 
+            # Stops the stage movement
+            # print('Stopping stage movement')
+            routineStages.moveStageAbort()
+
+            ## Begins the vertical movement portion of the routine
+            # Sets stage velocity so that the movement occurs quickly
+            routineStages.updateStageVelocity(1)
+            # Move the stages vertically upwards
+            print('Moving the stages upward by .1 mm')
+            self.substrateStages.moveStageRelative(self.substrateStages.positioner_Z, [0.1])
+
+            # Begin lowering the stages
+            print('Starting routine stage movement')
+            routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(self.substrateStages.positioner_Z,[0.1]))
+            routineStagesThread.start()
+
+            ## Begins scattering event detection
+            # Informs the UI to start processing the video feed
+            self.queue_routineLoop.put('Start video processing')
+            # print('Starting scattering detection')
+            pixelTriggerValue = self.detectScatteringEvent()
+
+            # Stops the stage movement
             # print('Stopping stage movement')
             routineStages.moveStageAbort()
 
