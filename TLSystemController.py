@@ -208,15 +208,15 @@ class SystemController():
             '36':[40.2,-8.5,3.89],
         }
 
-        dataPoints = len(routineStartingLocations)
-        # dataPoints = 6
+        # dataPoints = len(routineStartingLocations)
+        dataPoints = 1
 
         # Creates an instance of the stages for the routine
         routineStages = TLXYZStages.XYZStages()
         routineStages.initializeStages()
 
         ## Data point collection
-        # Loop that runs 6 times to collect 6 data points
+        # Loop that runs to collect the data points
         for i in range(dataPoints):
             # Updates the stages velocity so that they move to the start position faster
             routineStages.updateStageVelocity(1)
@@ -249,19 +249,34 @@ class SystemController():
             # Informs the UI to start processing the video feed
             self.queue_routineLoop.put('Start video processing')
             # print('Starting scattering detection')
-            pixelTriggerValue = self.detectScatteringEvent()
+            pixelTriggerValue = self.detectScatteringBegin()
+
+            '''
+            #######
+            TEMP REMOVE FOR TESTING OF NEW ROUTINE
+            #######
 
             # Stops the stage movement
             routineStages.moveStageAbort()
+
+            # Retrieving stage position
+            # print('Retrieving stage position')
+            [x,y,z] = routineStages.retrieveStagePosition()
+            print('Stage position: {},{},{}'.format(x,y,z))
+
+            # Creates a data point with the stage position, pixel count, and point type
+            TLDataClass.TLData(x,y,z,pixelTriggerValue,1)
+
 
             ## Begins the vertical movement portion of the routine
             # Sets stage velocity so that the movement occurs quickly
             # print('Setting Stage Velocity to 1')
             routineStages.updateStageVelocity(1)
 
+            # Retrieves the stage position
             [x,y,z] = routineStages.retrieveStagePosition()
 
-            # Move the stages vertically upwards
+            # Move the stages vertically upwards from current position
             # print('Moving the stages upward by .1 mm')
             routineStages.moveStageAbsolute(routineStages.macroGroup, [x,y,z-0.1])
 
@@ -278,19 +293,45 @@ class SystemController():
             # Informs the UI to start processing the video feed
             self.queue_routineLoop.put('Start video processing')
             # print('Starting scattering detection')
-            pixelTriggerValue = self.detectScatteringEvent()
+            pixelTriggerValue = self.detectScatteringBegin()
 
             # Stops the stage movement
             # print('Stopping stage movement')
             routineStages.moveStageAbort()
 
-            #Retrieving stage position
+            # Retrieving stage position
             # print('Retrieving stage position')
             [x,y,z] = routineStages.retrieveStagePosition()
             print('Stage position: {},{},{}'.format(x,y,z))
 
-            # Creates a data point with the stage position and pixel coiunt
-            TLDataClass.TLData(x,y,z,pixelTriggerValue)
+            # Creates a data point with the stage position, pixel count, and point type
+            TLDataClass.TLData(x,y,z,pixelTriggerValue,2)
+            '''
+
+            # Retrieving stage position
+            # print('Retrieving stage position')
+            [x,y,z] = routineStages.retrieveStagePosition()
+            print('Stage position: {},{},{}'.format(x,y,z))
+
+            # Creates a data point with the stage position, pixel count, and point type
+            TLDataClass.TLData(x,y,z,pixelTriggerValue,1)
+
+            ## Begins scattering event ending detection
+            # Informs the UI to start processing the video feed
+            self.queue_routineLoop.put('Start video processing')
+            # print('Starting scattering detection')
+            pixelTriggerValue = self.detectScatteringEnding()
+
+            # Stops the stage movement
+            routineStages.moveStageAbort()
+
+            # Retrieving stage position
+            # print('Retrieving stage position')
+            [x,y,z] = routineStages.retrieveStagePosition()
+            print('Stage position: {},{},{}'.format(x,y,z))
+
+            # Creates a data point with the stage position, pixel count, and point type
+            TLDataClass.TLData(x,y,z,pixelTriggerValue,2)
 
         # Signals the end of the routine loop
         self.queue_routineLoop.put('End routine loop')
@@ -300,8 +341,8 @@ class SystemController():
         # optimization = TLOptimization.Optimization()
         # optimization.optimize()
 
-    # Method to watch for scattering event
-    def detectScatteringEvent(self):
+    # Method to watch for scattering event beginning
+    def detectScatteringBegin(self):
         print('detectScatteringEvent accessed')
         # Creates the queues for communication with pixel counter
         queue_SCtoPixelCounter = multiprocessing.Queue()
@@ -322,6 +363,39 @@ class SystemController():
             currentPixelCount = queue_SCtoPixelCounter.get()
             # Checks to see what the current pixel count is and ends the loop once threashold is reached
             if currentPixelCount >= self.thresholdPixelCount:
+                #Threshold met, stop scanning by setting continueScanning to False
+                continueScanning = False
+            print('End of loop Count:{}'.format(currentPixelCount))
+        print('Location found')
+        if queue_SCtoPixelCounter.get() == 'Pixel counter finished':
+            print('Received confirmation that pixel counter is finished')
+            self.routinePixelCounterProcess.terminate()
+
+        # Returns the number of pixels that triggered the event
+        return currentPixelCount
+
+    # Method to watch for scattering event ending
+    def detectScatteringEnding(self):
+        print('detectScatteringEvent accessed')
+        # Creates the queues for communication with pixel counter
+        queue_SCtoPixelCounter = multiprocessing.Queue()
+        # Creates the pixel counter that will be used for the routine
+        routinePixelCounter = TLPixelCounter.PixelCounter(queue_SCtoPixelCounter,self.pipe_UItoPixel2,self.thresholdPixelCount)
+        # print('Creating video process')
+        self.routinePixelCounterProcess = multiprocessing.Process(target=routinePixelCounter.run, args=())
+        self.routinePixelCounterProcess.daemon = True
+        # print('Starting pixel counter process')
+        self.routinePixelCounterProcess.start()
+
+        # Control loop for the tip locator routine. Runs until red pixels go below a certain number
+        # print('Starting location routine')
+        continueScanning = True
+        while continueScanning:
+            # print('In routine')
+            # Gets the current red pixel counter
+            currentPixelCount = queue_SCtoPixelCounter.get()
+            # Checks to see what the current pixel count is and ends the loop once threashold is reached
+            if currentPixelCount < self.thresholdPixelCount:
                 #Threshold met, stop scanning by setting continueScanning to False
                 continueScanning = False
             print('End of loop Count:{}'.format(currentPixelCount))

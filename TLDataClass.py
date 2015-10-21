@@ -12,11 +12,12 @@ import TLParameters
 
 # Defines the tip locator data class. This class stores the x,y,z stage locator whenever a scattering event occurs.
 class TLData():
-    def __init__(self,x,y,z,pixelTriggerValue):
+    def __init__(self,x,y,z,pixelTriggerValue,pointType):
         self.x = x
         self.y = y
         self.z = z
         self.pixelTriggerValue = pixelTriggerValue
+        self.pointType = pointType
 
         # Adds the instance to the global list of the instances
         TLParameters.updateDataStorageInstances(self)
