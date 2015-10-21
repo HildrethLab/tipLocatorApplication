@@ -14,7 +14,7 @@ import TLEquipment
 import TLParameters
 
 class PixelCounter(TLEquipment.Equipment):
-    def __init__(self,queue_SCtoPixelCounter,pipe_UItoPixel2,pixelThresholdValue):
+    def __init__(self,queue_SCtoPixelCounter,pipe_UItoPixel2,pixelThresholdValue,detectionType):
         # print('Pixel Counter init accessed')
         # Initializes the inherited class
         TLEquipment.Equipment.__init__(self)
@@ -35,16 +35,28 @@ class PixelCounter(TLEquipment.Equipment):
         # Value that will be classified as a triggering event
         self.pixelTriggerValue = pixelThresholdValue
 
+        # Type of pixel counter that is needed, scattering beginning or ending
+        self.detectionType = detectionType
+
 
     # Method for counting the number of red pixels on the screen
     def run(self):
         # print('pixel counter run accessed')
         self.pipe_UItoPixel2.send('stillRunning')
         pixelSum = self.pipe_UItoPixel2.recv()
-        while pixelSum <= self.pixelTriggerValue:
-            pixelSum = self.pipe_UItoPixel2.recv()
-            self.pipe_UItoPixel2.send('stillRunning')
-            # print ('There are {} pixels in the frame, looking for {} or greater.'.format(pixelSum,self.pixelTriggerValue))
+
+        if self.detectionType == 'begin':
+            while pixelSum <= self.pixelTriggerValue:
+                pixelSum = self.pipe_UItoPixel2.recv()
+                self.pipe_UItoPixel2.send('stillRunning')
+                # print ('There are {} pixels in the frame, looking for {} or greater.'.format(pixelSum,self.pixelTriggerValue))
+        elif self.detectionType == 'end':
+            while pixelSum > self.pixelTriggerValue:
+                pixelSum = self.pipe_UItoPixel2.recv()
+                self.pipe_UItoPixel2.send('stillRunning')
+                # print ('There are {} pixels in the frame, looking for {} or greater.'.format(pixelSum,self.pixelTriggerValue))
+            else:
+                print('No Detection Type specified')
 
         # Informs the UI that a scattering event was detected
         # print('Scattering event detected at {} pixels'.format(pixelSum))

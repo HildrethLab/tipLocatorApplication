@@ -40,9 +40,9 @@ class TLUI(TLUIBase.Ui_TipLocator):
         self.initializeSystemController(self.queue_SCtoUI,self.queue_routineLoop,self.pipe_UItoPixel2)
 
         # Creates a camera that will be used for video processing
-        self.camera = SimpleCV.Camera(0)
+        self.camera = SimpleCV.Camera(1)
         # Desired threshold value for processing the video
-        self.thresholdValue = 0.20
+        self.thresholdValue = 0.9999
 
     # Method to add functionality to the UIs buttons
     def buttonFunctionality(self):
@@ -132,7 +132,7 @@ class TLUI(TLUIBase.Ui_TipLocator):
             QtGui.QApplication.processEvents()
             if not self.queue_routineLoop.empty():
                 command = self.queue_routineLoop.get()
-                print('Command received by the UI: {}'.format(command))
+                # print('Command received by the UI: {}'.format(command))
 
                 if command == 'Start video processing':
                     # print('Starting to process video feed')
@@ -209,7 +209,7 @@ class TLUI(TLUIBase.Ui_TipLocator):
             # print('Command received from pixel process: {}'.format(commandFromPixel))
 
             if commandFromPixel == 'scatteringEventDetected':
-                print('UI received command to stop processing video')
+                # print('UI received command to stop processing video')
                 processVideoRunning = False
 
 

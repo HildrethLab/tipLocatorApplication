@@ -111,12 +111,12 @@ class XYZStages(TLStages.Stages):
 
     # Method for moving the stages a relative distance
     def moveStageRelative(self, direction, distance):
-        print('moveStageRelative direction: {}, distance: {}'.format(direction,distance))
+        # print('moveStageRelative direction: {}, distance: {}'.format(direction,distance))
         self._XPSSystem.GroupMoveRelative(self._socketID1,direction,distance)
 
      # Method for aborting stage movement (aborts all directions)
     def moveStageAbort(self):
-        print('moveStageAbort')
+        # print('moveStageAbort')
         self._XPSSystem.GroupMoveAbort(self._socketID2, self.positioner_X)
         self._XPSSystem.GroupMoveAbort(self._socketID2, self.positioner_Y)
         self._XPSSystem.GroupMoveAbort(self._socketID2, self.positioner_Z)
@@ -124,7 +124,7 @@ class XYZStages(TLStages.Stages):
 
     # Method to get the current location of the stage
     def retrieveStagePosition(self):
-        print('retrieveStagePosition')
+        # print('retrieveStagePosition')
         # Gets the current location of each axis of the stage
         [_stagePositionXError, _stagePositionX] = self._XPSSystem.GroupPositionCurrentGet(self._socketID1,self.positioner_X,1)
         [_stagePositionYError, _stagePositionY] = self._XPSSystem.GroupPositionCurrentGet(self._socketID1,self.positioner_Y,1)
@@ -144,7 +144,7 @@ class XYZStages(TLStages.Stages):
 
     # Method to check if the stages are moving
     def checkMotionStatus(self):
-        print('checkMotionStatus')
+        # print('checkMotionStatus')
         # Gets the current motion status of each positioner
         [_stageMotionStatusXError, _stageMotionStatusX] = self._XPSSystem.GroupMotionStatusGet(self._socketID2,self.positioner_X,1)
         [_stageMotionStatusYError, _stageMotionStatusY] = self._XPSSystem.GroupMotionStatusGet(self._socketID2,self.positioner_X,1)

@@ -11,8 +11,8 @@ import cv2
 import time
 
 processVideoRunning = True
-camera = SimpleCV.Camera(0)
-thresholdValue = 0.50
+camera = SimpleCV.Camera(1)
+thresholdValue = 0.56
 
 
 while processVideoRunning:
