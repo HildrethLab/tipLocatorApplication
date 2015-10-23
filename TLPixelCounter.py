@@ -28,9 +28,9 @@ class PixelCounter(TLEquipment.Equipment):
         # print('Set color in pixel counter')
         self.lightColor = 'red'
 
-        # Threshold value of interest
-        # print('Set threshold value in pixel counter')
-        self.thresholdValue = 0.90
+        # # Threshold value of interest
+        # # print('Set threshold value in pixel counter')
+        # self.thresholdValue = 0.56
 
         # Value that will be classified as a triggering event
         self.pixelTriggerValue = pixelThresholdValue

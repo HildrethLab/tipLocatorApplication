@@ -93,41 +93,41 @@ class SystemController():
         # Dictionary of the max movement distance for each routine pass
         routineMovementDistances = {
             '1':[2],
-            '2':[-2],
+            '2':[2],
             '3':[2],
-            '4':[-2],
+            '4':[2],
             '5':[2],
-            '6':[-2],
+            '6':[2],
             '7':[2],
-            '8':[-2],
+            '8':[2],
             '9':[2],
-            '10':[-2],
+            '10':[2],
             '11':[2],
-            '12':[-2],
+            '12':[2],
             '13':[2],
-            '14':[-2],
+            '14':[2],
             '15':[2],
-            '16':[-2],
+            '16':[2],
             '17':[2],
-            '18':[-2],
+            '18':[2],
             '19':[2],
-            '20':[-2],
+            '20':[2],
             '21':[2],
-            '22':[-2],
+            '22':[2],
             '23':[2],
-            '24':[-2],
+            '24':[2],
             '25':[2],
-            '26':[-2],
+            '26':[2],
             '27':[2],
-            '28':[-2],
+            '28':[2],
             '29':[2],
-            '30':[-2],
+            '30':[2],
             '31':[2],
-            '32':[-2],
+            '32':[2],
             '33':[2],
-            '34':[-2],
+            '34':[2],
             '35':[2],
-            '36':[-2],
+            '36':[2],
         }
         # Dictionary for the movement direction for each routine pass
         routineMovementDirections = {
@@ -170,46 +170,46 @@ class SystemController():
         }
         # Dictionary for the starting location for each routine pass
         routineStartingLocations = {
-            '1':[39.5,-6,-5],
-            '2':[39.5,-6.5,-5],
-            '3':[39.5,-7,-5],
-            '4':[40.2,-6,4.25],
-            '5':[39.5,-6,4.35],
-            '6':[40.2,-6,4.35],
-            '7':[39.0,-6.5,4.3],
-            '8':[40.2,-6.5,4.3],
-            '9':[39.0,-6.5,4.25],
-            '10':[40.2,-6.5,4.25],
-            '11':[39.0,-6.5,4.35],
-            '12':[40.2,-6.5,4.35],
-            '13':[39.0,-7,4.3],
-            '14':[40.2,-7,4.3],
-            '15':[39.0,-7,4.25],
-            '16':[40.2,-7,4.25],
-            '17':[39.0,-7,4.35],
-            '18':[40.2,-7,4.35],
-            '19':[39.0,-7.5,3.96],
-            '20':[40.2,-7.5,3.96],
-            '21':[39.0,-7.5,3.98],
-            '22':[40.2,-7.5,3.98],
-            '23':[39.0,-7.5,4.00],
-            '24':[40.2,-7.5,4.00],
-            '25':[39.0,-8,3.87],
-            '26':[40.2,-8,3.87],
-            '27':[39.0,-8,3.90],
-            '28':[40.2,-8,3.90],
-            '29':[39.0,-8,3.89],
-            '30':[40.2,-8,3.89],
-            '31':[39.0,-8.5,3.87],
-            '32':[40.2,-8.5,3.87],
-            '33':[39.0,-8.5,3.90],
-            '34':[40.2,-8.5,3.90],
-            '35':[39.0,-8.5,3.89],
-            '36':[40.2,-8.5,3.89],
+            '1':[39.4,-6,4.6],
+            '2':[39.4,-6,4.6],
+            '3':[39.4,-6,4.6],
+            '4':[39.4,-6,4.6],
+            '5':[39.4,-6,4.6],
+            '6':[39.4,-6,4.6],
+            '7':[39.4,-6,4.6],
+            '8':[39.4,-6,4.6],
+            '9':[39.4,-6,4.6],
+            '10':[39.4,-6,4.6],
+            '11':[39.4,-6,4.6],
+            '12':[39.4,-6,4.6],
+            '13':[39.4,-6,4.6],
+            '14':[39.4,-6,4.6],
+            '15':[39.4,-6,4.6],
+            '16':[39.4,-6,4.6],
+            '17':[39.4,-6,4.6],
+            '18':[39.4,-6,4.6],
+            '19':[39.4,-6,4.6],
+            '20':[39.4,-6,4.6],
+            '21':[39.4,-6,4.6],
+            '22':[39.4,-6,4.6],
+            '23':[39.4,-6,4.6],
+            '24':[39.4,-6,4.6],
+            '25':[39.4,-6,4.6],
+            '26':[39.4,-6,4.6],
+            '27':[39.4,-6,4.6],
+            '28':[39.4,-6,4.6],
+            '29':[39.4,-6,4.6],
+            '30':[39.4,-6,4.6],
+            '31':[39.4,-6,4.6],
+            '32':[39.4,-6,4.6],
+            '33':[39.4,-6,4.6],
+            '34':[39.4,-6,4.6],
+            '35':[39.4,-6,4.6],
+            '36':[39.4,-6,4.6],
         }
 
-        # dataPoints = len(routineStartingLocations)
-        dataPoints = 3
+        dataPoints = len(routineStartingLocations)
+        # dataPoints = 1
 
         # Creates an instance of the stages for the routine
         routineStages = TLXYZStages.XYZStages()
@@ -246,7 +246,7 @@ class SystemController():
 
             ### First step of the routine, find side 1
             print('STARTING STEP 1')
-            time.sleep(2)
+            # time.sleep(2)
 
             ## Begins scattering event detection
             # Informs the UI to start processing the video feed
@@ -312,7 +312,7 @@ class SystemController():
 
             ### Second step of the routine, find side 2
             print('STARTING STEP 2')
-            time.sleep(2)
+            # time.sleep(2)
             # Creates the thread for the stages that will be moving in the routine
             print('Starting second routine stage movement')
             routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(routineMovementDirections[str(i+1)],routineMovementDistances[str(i+1)]))
@@ -337,7 +337,7 @@ class SystemController():
 
             ### Third step of the rountine, split the two sides and find the top
             print('STARTING STEP 3')
-            time.sleep(2)
+            # time.sleep(2)
             # Determines the midpoint for each of the coordinates or thw first two data points
             x_mid = (x2 + x1)/2
             y_mid = (y2 + y1)/2
@@ -355,7 +355,7 @@ class SystemController():
 
             # Begin raising the stages
             print('Starting third routine stage movement')
-            routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(self.substrateStages.positioner_Z,[0.5]))
+            routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(self.substrateStages.positioner_Z,[-0.5]))
             routineStagesThread.start()
 
             ## Begins scattering event ending detection
@@ -440,9 +440,9 @@ class SystemController():
             print(currentPixelCount)
             print(self.thresholdPixelCount)
             # Checks to see what the current pixel count is and ends the loop once threashold is reached
-            if currentPixelCount < self.thresholdPixelCount:
+            if currentPixelCount <= self.thresholdPixelCount:
                 #Threshold met, stop scanning by setting continueScanning to False
-                print('Stopping because {} < {}'.format(currentPixelCount,self.thresholdPixelCount))
+                print('Stopping because {} <= {}'.format(currentPixelCount,self.thresholdPixelCount))
                 continueScanning = False
         print('End of loop Count:{}'.format(currentPixelCount))
         print('Location found')
