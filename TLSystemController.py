@@ -226,7 +226,7 @@ class SystemController():
             routineStages.moveStageAbsolute(self.substrateStages.macroGroup,routineStartingLocations[str(i+1)])
 
             # Updates the stages velocity so that the routine is run slower
-            routineStages.updateStageVelocity(0.01)
+            routineStages.updateStageVelocity(0.001)
 
             # Creates the thread for the stages that will be moving in the routine
             # print('Starting routine stage movement')
@@ -351,7 +351,7 @@ class SystemController():
             routineStages.moveStageAbsolute(self.substrateStages.macroGroup,[x_mid,y_mid,z_mid])
 
             # Updates the stages velocity so that they move to the start position faster
-            routineStages.updateStageVelocity(0.01)
+            routineStages.updateStageVelocity(0.001)
 
             # Begin raising the stages
             print('Starting third routine stage movement')
