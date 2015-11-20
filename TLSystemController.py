@@ -81,15 +81,157 @@ class SystemController():
 
         pass
 
-    ## Routine methods
-    # Method to start the tip locator routine
+    ## Routine method
+    # Method to execute the tip locator routine
     def tipLocatorRoutine(self):
+        print('Tip locator Routine started')
+        # Clears the data storage object
+        TLParameters.kHNSCTL_dataStorageInstances = []
+
+        # Creates an instance of the stages for the routine
+        routineStages = TLXYZStages.XYZStages()
+        routineStages.initializeStages()
+
+        # Dictionary of the max movement distance for each routine pass
+        routineMovementDistances = [2]
+
+        # Dictionary for the movement direction for each routine pass
+        routineMovementDirections = self.substrateStages.positioner_X
+
+        # Dictionary for the starting location for each routine pass
+        x_start = 39.4
+        y_start = -6
+        z_start = 4.60
+        routineStartingLocations = [x_start, y_start, z_start]
+
+        ## Routine to collect the data points
+
+        print(self.collectDataPoint(routineStartingLocations,routineMovementDirections,routineMovementDistances))
+
+
+        # Signals the end of the routine loop
+        self.queue_routineLoop.put('End routine loop')
+        # Retrieves all of the data points collected
+        self.retrieveDataPoints()
+
+
+    ## Find data points
+    # Method for collecting a single pass
+    def collectDataPoint(self,startingLocation,movementDirection,movementDistance):
+
+        # Creates an instance of the stages for the routine
+        routineStages = TLXYZStages.XYZStages()
+        routineStages.initializeStages()
+
+        ## Data point collection
+        # Updates the stages velocity so that they move to the start position faster
+        routineStages.updateStageVelocity(1)
+
+        # Moves the stages to the starting position for the scan
+        print('Moving to starting position')
+        routineStages.moveStageAbsolute(self.substrateStages.macroGroup,startingLocation)
+
+        # Updates the stages velocity so that the routine is run slower
+        routineStages.updateStageVelocity(0.001)
+
+        # Creates the thread for the stages that will be moving in the routine
+        # print('Starting routine stage movement')
+        routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(movementDirection,movementDistance))
+        routineStagesThread.start()
+
+        ### First step of the routine, find side 1
+        print('STARTING STEP 1')
+
+        ## Begins scattering event detection
+        # Informs the UI to start processing the video feed
+        self.queue_routineLoop.put('Start video processing')
+        print('Starting scattering detection begin')
+        pixelTriggerValue1 = self.detectScatteringBegin()
+
+        # Stops the stage movement
+        routineStages.moveStageAbort()
+
+        # Retrieving stage position
+        # print('Retrieving stage position')
+        [x1,y1,z1] = routineStages.retrieveStagePosition()
+        print('Stage position: {},{},{}'.format(x1,y1,z1))
+
+        # Creates a data point with the stage position, pixel count, and point type
+        TLDataClass.TLData(x1,y1,z1,pixelTriggerValue1,1)
+
+        ### Second step of the routine, find side 2
+        print('STARTING STEP 2')
+        # Creates the thread for the stages that will be moving in the routine
+        print('Starting second routine stage movement')
+        routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(movementDirection,movementDistance))
+        routineStagesThread.start()
+
+        ## Begins scattering event ending detection
+        # Informs the UI to start processing the video feed
+        self.queue_routineLoop.put('Start video processing')
+        print('Starting scattering detection end')
+        pixelTriggerValue2 = self.detectScatteringEnding()
+
+        # Stops the stage movement
+        routineStages.moveStageAbort()
+
+        # Retrieving stage position
+        # print('Retrieving stage position')
+        [x2,y2,z2] = routineStages.retrieveStagePosition()
+        print('Stage position: {},{},{}'.format(x2,y2,z2))
+
+        # Creates a data point with the stage position, pixel count, and point type
+        TLDataClass.TLData(x2,y2,z2,pixelTriggerValue2,2)
+
+        ### Third step of the rountine, split the two sides and find the top
+        print('STARTING STEP 3')
+        # Determines the midpoint for each of the coordinates of the first two data points
+        x_mid = (x2 + x1)/2
+        y_mid = (y2 + y1)/2
+        z_mid = (z2 + z1)/2
+
+        # Updates the stages velocity so that they move to the start position faster
+        routineStages.updateStageVelocity(1)
+
+        # Moves the stages to the midpoint
+        print('Moving to mid position: {},{},{}'.format(x_mid,y_mid,z_mid))
+        routineStages.moveStageAbsolute(self.substrateStages.macroGroup,[x_mid,y_mid,z_mid])
+
+        # Updates the stages velocity so that they move to the start position faster
+        routineStages.updateStageVelocity(0.001)
+
+        # Begin raising the stages
+        print('Starting third routine stage movement')
+        routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(self.substrateStages.positioner_Z,[-0.5]))
+        routineStagesThread.start()
+
+        ## Begins scattering event ending detection
+        # Informs the UI to start processing the video feed
+        self.queue_routineLoop.put('Start video processing')
+        print('Starting scattering detection end')
+        pixelTriggerValue3 = self.detectScatteringEnding()
+
+        # Stops the stage movement
+        routineStages.moveStageAbort()
+
+        # Retrieving stage position
+        # print('Retrieving stage position')
+        [x3,y3,z3] = routineStages.retrieveStagePosition()
+        print('Stage position: {},{},{}'.format(x3,y3,z3))
+
+        # Creates a data point with the stage position, pixel count, and point type
+        TLDataClass.TLData(x3,y3,z3,pixelTriggerValue3,3)
+
+
+        return[ x1,y1,z1,x2,y2,z2,x3,y3,z3,]
+
+    ## Old Routine methods
+    # Method to start the tip locator routine
+    def tipLocatorRoutineOLD(self):
         print('Tip locator routine started')
         # Clears the data storage object
         TLParameters.kHNSCTL_dataStorageInstances = []
 
-        # Number of routine passes that will occur
-        # dataPoints = 6
         # Dictionary of the max movement distance for each routine pass
         routineMovementDistances = {
             '1':[2],
