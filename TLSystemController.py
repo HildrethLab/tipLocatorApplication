@@ -49,7 +49,7 @@ class SystemController():
         }
 
         # Sets the desired number of pixels threshold that will trigger the scattering event
-        self.thresholdPixelCount = 5
+        self.thresholdPixelCount = 500
 
     ## Method to run the system controller loop
     # The loop is always running and responds based on the commands received from the pipe
@@ -108,6 +108,7 @@ class SystemController():
 
         print(self.collectDataPoint(routineStartingLocations,routineMovementDirections,routineMovementDistances))
 
+        print(self.collectDataPoint([x_start, y_start-1, z_start],routineMovementDirections,routineMovementDistances))
 
         # Signals the end of the routine loop
         self.queue_routineLoop.put('End routine loop')
@@ -118,7 +119,7 @@ class SystemController():
     ## Find data points
     # Method for collecting a single pass
     def collectDataPoint(self,startingLocation,movementDirection,movementDistance):
-
+        print('collectDataPoint accessed')
         # Creates an instance of the stages for the routine
         routineStages = TLXYZStages.XYZStages()
         routineStages.initializeStages()
@@ -227,7 +228,7 @@ class SystemController():
 
     ## Old Routine methods
     # Method to start the tip locator routine
-    def tipLocatorRoutineOLD(self):
+    def tipLocatorRoutine_FocalLength(self):
         print('Tip locator routine started')
         # Clears the data storage object
         TLParameters.kHNSCTL_dataStorageInstances = []
