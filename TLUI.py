@@ -36,13 +36,16 @@ class TLUI(TLUIBase.Ui_TipLocator):
         # Moves the UI to the top left corner of the screen
         self.move(0,0)
 
+        # Sets the desired number of pixels threshold that will trigger the scattering event
+        self.thresholdPixelCount = 5
+
         # Initializes the system controller
-        self.initializeSystemController(self.queue_SCtoUI,self.queue_routineLoop,self.pipe_UItoPixel2)
+        self.initializeSystemController(self.thresholdPixelCount,self.queue_SCtoUI,self.queue_routineLoop,self.pipe_UItoPixel2)
 
         # Creates a camera that will be used for video processing
-        self.camera = SimpleCV.Camera(1)
+        self.camera = SimpleCV.Camera(0)
         # Desired threshold value for processing the video
-        self.thresholdValue = 0.99
+        self.thresholdValue = 0.2
 
     # Method to add functionality to the UIs buttons
     def buttonFunctionality(self):
@@ -156,12 +159,12 @@ class TLUI(TLUIBase.Ui_TipLocator):
             print('Failed to move stages to initial position')
 
     # Method for starting the system controller
-    def initializeSystemController(self,queue_SCtoUI,queue_routineLoop,pipe_UItoPixel2):
+    def initializeSystemController(self,thresholdPixelCount,queue_SCtoUI,queue_routineLoop,pipe_UItoPixel2):
         # print('initializeSystemController accessed')
         ## Starting the system controller
         # Creates an instance of the system controller
         # print('Creating system controller')
-        self.systemController = TLSystemController.SystemController(queue_SCtoUI,queue_routineLoop,pipe_UItoPixel2)
+        self.systemController = TLSystemController.SystemController(thresholdPixelCount,queue_SCtoUI,queue_routineLoop,pipe_UItoPixel2)
         # Creates a thread from the system controller
         # print('Creating process for system controller')
         self.systemControllerProcess = threading.Thread(target=self.systemController.run, args=())

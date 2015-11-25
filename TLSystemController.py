@@ -20,7 +20,7 @@ import TLOptimization # Method for optimizing the data collected to find the foc
 
 # System controller class that inherits threading
 class SystemController():
-    def __init__(self,queue_SCtoUI,queue_routineLoop,pipe_UItoPixel2):
+    def __init__(self,thresholdPixelCount,queue_SCtoUI,queue_routineLoop,pipe_UItoPixel2):
         # print('System Controller Initialized')
         # Creates the instance's queue connection with the UI
         self.queue_SCtoUI = queue_SCtoUI
@@ -49,7 +49,12 @@ class SystemController():
         }
 
         # Sets the desired number of pixels threshold that will trigger the scattering event
-        self.thresholdPixelCount = 500
+        self.thresholdPixelCount = thresholdPixelCount
+
+        # Sets the quick movement velocity
+        self.velocityMovement = 1
+        # Sets the slow, routine, movement velocity
+        self.velocityRoutine = 0.001
 
     ## Method to run the system controller loop
     # The loop is always running and responds based on the commands received from the pipe
@@ -99,25 +104,33 @@ class SystemController():
         routineMovementDirections = self.substrateStages.positioner_X
 
         # Dictionary for the starting location for each routine pass
-        x_start = 39.4
-        y_start = -6
-        z_start = 4.60
+        x_start = 40.48
+        y_start = -7.7
+        z_start = 4.21
         routineStartingLocations = [x_start, y_start, z_start]
 
         ## Routine to collect the data points
         # Collects three data points from the stating point
-        print(self.collectDataPoint(routineStartingLocations,routineMovementDirections,routineMovementDistances))
+        self.collectDataPoint(routineStartingLocations,routineMovementDirections,routineMovementDistances)
         # Determines the diameter of the cone at this point
 
 
         # Collects three data points 1mm further down the cone from the starting point
-        print(self.collectDataPoint([x_start, y_start-1, z_start],routineMovementDirections,routineMovementDistances))
+        self.collectDataPoint([x_start-.02, y_start-0.1, z_start+.02],routineMovementDirections,routineMovementDistances)
         # Determines the diameter of the cone at this point
 
-        # Compares the diameters of the two cones and estimates where the 200 µm diameter will be located
+        # Collects three data points 1mm further down the cone from the starting point
+        self.collectDataPoint([x_start-.02, y_start-0.2, z_start+.02],routineMovementDirections,routineMovementDistances)
+        # Determines the diameter of the cone at this point
 
-        # Collects three data points at estimated 200 µm diameter location
-        # Determines the diameter at this location
+
+        # Collects three data points 1mm further down the cone from the starting point
+        self.collectDataPoint([x_start-.04, y_start-0.3, z_start+.03],routineMovementDirections,routineMovementDistances)
+        # Determines the diameter of the cone at this point
+
+
+
+        # Estimates the location for desired diameter
 
         # Repeat process as needed (Maybe loop that runs while diameter isn't within a certain range)
 
@@ -137,14 +150,14 @@ class SystemController():
 
         ## Data point collection
         # Updates the stages velocity so that they move to the start position faster
-        routineStages.updateStageVelocity(1)
+        routineStages.updateStageVelocity(self.velocityMovement)
 
         # Moves the stages to the starting position for the scan
         print('Moving to starting position')
         routineStages.moveStageAbsolute(self.substrateStages.macroGroup,startingLocation)
 
         # Updates the stages velocity so that the routine is run slower
-        routineStages.updateStageVelocity(0.001)
+        routineStages.updateStageVelocity(self.velocityRoutine)
 
         # Creates the thread for the stages that will be moving in the routine
         # print('Starting routine stage movement')
@@ -153,7 +166,7 @@ class SystemController():
 
         ### First step of the routine, find side 1
         print('STARTING STEP 1')
-
+        # time.sleep(5)
         ## Begins scattering event detection
         # Informs the UI to start processing the video feed
         self.queue_routineLoop.put('Start video processing')
@@ -173,6 +186,7 @@ class SystemController():
 
         ### Second step of the routine, find side 2
         print('STARTING STEP 2')
+        # time.sleep(5)
         # Creates the thread for the stages that will be moving in the routine
         print('Starting second routine stage movement')
         routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(movementDirection,movementDistance))
@@ -197,20 +211,21 @@ class SystemController():
 
         ### Third step of the rountine, split the two sides and find the top
         print('STARTING STEP 3')
+        # time.sleep(5)
         # Determines the midpoint for each of the coordinates of the first two data points
         x_mid = (x2 + x1)/2
         y_mid = (y2 + y1)/2
         z_mid = (z2 + z1)/2
 
         # Updates the stages velocity so that they move to the start position faster
-        routineStages.updateStageVelocity(1)
+        routineStages.updateStageVelocity(self.velocityMovement)
 
         # Moves the stages to the midpoint
         print('Moving to mid position: {},{},{}'.format(x_mid,y_mid,z_mid))
         routineStages.moveStageAbsolute(self.substrateStages.macroGroup,[x_mid,y_mid,z_mid])
 
         # Updates the stages velocity so that they move to the start position faster
-        routineStages.updateStageVelocity(0.001)
+        routineStages.updateStageVelocity(self.velocityRoutine)
 
         # Begin raising the stages
         print('Starting third routine stage movement')
@@ -237,9 +252,9 @@ class SystemController():
 
         return[ x1,y1,z1,x2,y2,z2,x3,y3,z3,]
 
-    ## Old Routine methods
+    ## Routine methods to find the focalpoint of the cone
     # Method to start the tip locator routine
-    def tipLocatorRoutine_FocalLength(self):
+    def tipLocatorRoutine_FocalPoint(self):
         print('Tip locator routine started')
         # Clears the data storage object
         TLParameters.kHNSCTL_dataStorageInstances = []
@@ -558,6 +573,7 @@ class SystemController():
             print('In routine')
             # Gets the current red pixel counter
             currentPixelCount = queue_SCtoPixelCounter.get()
+            print('SC pixel count - {}'.format(currentPixelCount))
             # Checks to see what the current pixel count is and ends the loop once threashold is reached
             if currentPixelCount >= self.thresholdPixelCount:
                 #Threshold met, stop scanning by setting continueScanning to False
