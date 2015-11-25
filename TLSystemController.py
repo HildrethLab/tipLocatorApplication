@@ -16,7 +16,7 @@ import TLXYZStages # Specific XPS stages
 import TLPixelCounter # Method to counter number of pixels on screen
 import TLParameters # Global parameters shared between the processes
 import TLDataClass # Method holding the data class for the application
-import TLOptimization # Method for optimizing the data collected to find the focal point of the cone
+import TLCircleFit # Method for fitting the collected data to a circle
 
 # System controller class that inherits threading
 class SystemController():
@@ -96,6 +96,9 @@ class SystemController():
         # Creates an instance of the stages for the routine
         routineStages = TLXYZStages.XYZStages()
         routineStages.initializeStages()
+
+        # Creates an instance of the circle fitter
+        circleFit = TLCircleFit.CircleFit()
 
         # Dictionary of the max movement distance for each routine pass
         routineMovementDistances = [2]
