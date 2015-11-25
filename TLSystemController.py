@@ -105,10 +105,21 @@ class SystemController():
         routineStartingLocations = [x_start, y_start, z_start]
 
         ## Routine to collect the data points
-
+        # Collects three data points from the stating point
         print(self.collectDataPoint(routineStartingLocations,routineMovementDirections,routineMovementDistances))
+        # Determines the diameter of the cone at this point
 
+
+        # Collects three data points 1mm further down the cone from the starting point
         print(self.collectDataPoint([x_start, y_start-1, z_start],routineMovementDirections,routineMovementDistances))
+        # Determines the diameter of the cone at this point
+
+        # Compares the diameters of the two cones and estimates where the 200 µm diameter will be located
+
+        # Collects three data points at estimated 200 µm diameter location
+        # Determines the diameter at this location
+
+        # Repeat process as needed (Maybe loop that runs while diameter isn't within a certain range)
 
         # Signals the end of the routine loop
         self.queue_routineLoop.put('End routine loop')
