@@ -11,6 +11,7 @@ import threading # Allows for the usage of threads (TESTING)
 import time # TEMPT FOR TESTING
 import datetime
 import csv
+import numpy as np
 # Custom modules
 import TLXYZStages # Specific XPS stages
 import TLPixelCounter # Method to counter number of pixels on screen
@@ -109,27 +110,35 @@ class SystemController():
         # Dictionary for the starting location for each routine pass
         x_start = 40.48
         y_start = -7.7
-        z_start = 4.21
+        z_start = 4.22
         routineStartingLocations = [x_start, y_start, z_start]
 
         ## Routine to collect the data points
         # Collects three data points from the stating point
-        self.collectDataPoint(routineStartingLocations,routineMovementDirections,routineMovementDistances)
+        dataMatrix = self.collectDataPoint(routineStartingLocations,routineMovementDirections,routineMovementDistances)
         # Determines the diameter of the cone at this point
 
+        print('Matrix: {}'.format(dataMatrix))
+        print('Matrix type: {}'.format(type(dataMatrix)))
+        print('Element: {}'.format(dataMatrix[:,0]))
+        print('Element type: {}'.format(type(dataMatrix[:,0])))
 
-        # Collects three data points 1mm further down the cone from the starting point
-        self.collectDataPoint([x_start-.02, y_start-0.1, z_start+.02],routineMovementDirections,routineMovementDistances)
-        # Determines the diameter of the cone at this point
+        # circleResults = circleFit.fitCircle(dataMatrix[:,1],dataMatrix[:,2])
+        #
+        # print(circleResults)
 
-        # Collects three data points 1mm further down the cone from the starting point
-        self.collectDataPoint([x_start-.02, y_start-0.2, z_start+.02],routineMovementDirections,routineMovementDistances)
-        # Determines the diameter of the cone at this point
-
-
-        # Collects three data points 1mm further down the cone from the starting point
-        self.collectDataPoint([x_start-.04, y_start-0.3, z_start+.03],routineMovementDirections,routineMovementDistances)
-        # Determines the diameter of the cone at this point
+        # # Collects three data points 1mm further down the cone from the starting point
+        # self.collectDataPoint([x_start-.02, y_start-0.1, z_start+.02],routineMovementDirections,routineMovementDistances)
+        # # Determines the diameter of the cone at this point
+        #
+        # # Collects three data points 1mm further down the cone from the starting point
+        # self.collectDataPoint([x_start-.02, y_start-0.2, z_start+.02],routineMovementDirections,routineMovementDistances)
+        # # Determines the diameter of the cone at this point
+        #
+        #
+        # # Collects three data points 1mm further down the cone from the starting point
+        # self.collectDataPoint([x_start-.04, y_start-0.3, z_start+.03],routineMovementDirections,routineMovementDistances)
+        # # Determines the diameter of the cone at this point
 
 
 
@@ -252,8 +261,9 @@ class SystemController():
         # Creates a data point with the stage position, pixel count, and point type
         TLDataClass.TLData(x3,y3,z3,pixelTriggerValue3,3)
 
+        dataMatrix = np.matrix(([x1,y1,z1],[x2,y2,z2],[x3,y3,z3]))
 
-        return[ x1,y1,z1,x2,y2,z2,x3,y3,z3,]
+        return[dataMatrix]
 
     ## Routine methods to find the focalpoint of the cone
     # Method to start the tip locator routine
