@@ -55,7 +55,12 @@ class SystemController():
         # Sets the quick movement velocity
         self.velocityMovement = 1
         # Sets the slow, routine, movement velocity
-        self.velocityRoutine = 0.001
+        self.velocityRoutine = 0.01
+
+        # Sets the slope of the laser beam
+        self.laserSlope = 25e-3
+        # Sets the target radius of the laser cone
+        self.targetRadius = 0.2 #[mm]
 
     ## Method to run the system controller loop
     # The loop is always running and responds based on the commands received from the pipe
@@ -108,41 +113,52 @@ class SystemController():
         routineMovementDirections = self.substrateStages.positioner_X
 
         # Dictionary for the starting location for each routine pass
-        x_start = 40.48
-        y_start = -7.7
-        z_start = 4.22
+        x_start = 84.2
+        y_start = -8
+        z_start = 5.1
         routineStartingLocations = [x_start, y_start, z_start]
 
         ## Routine to collect the data points
         # Collects three data points from the stating point
-        dataMatrix = self.collectDataPoint(routineStartingLocations,routineMovementDirections,routineMovementDistances)
-        # Determines the diameter of the cone at this point
+        dataMatrix1 = self.collectDataPoint(routineStartingLocations,routineMovementDirections,routineMovementDistances)
 
-        print('Matrix: {}'.format(dataMatrix))
-        print('Matrix type: {}'.format(type(dataMatrix)))
-        print('Element: {}'.format(dataMatrix[:,0]))
-        print('Element type: {}'.format(type(dataMatrix[:,0])))
+        # Collects three more data points at the same length down the cone
+        dataMatrix2 = self.collectDataPoint(routineStartingLocations+[0,0,0.025],routineMovementDirections,routineMovementDistances)
 
-        # circleResults = circleFit.fitCircle(dataMatrix[:,1],dataMatrix[:,2])
+        # Collects three more data points at the asme length down the cone
+        dataMatrix3 = self.collectDataPoint(routineStartingLocations+[0,0,0.05],routineMovementDirections,routineMovementDistances)
+
+        # Combines the three collected data sets
+        data_x = np.concatenate([dataMatrix1[0][:,0],dataMatrix2[0][:,0],dataMatrix3[0][:,0]])
+        data_y = np.concatenate([dataMatrix1[0][:,1],dataMatrix2[0][:,1],dataMatrix3[0][:,1]])
+        data_z = np.concatenate([dataMatrix1[0][:,2],dataMatrix2[0][:,2],dataMatrix3[0][:,2]])
+
+        print(data_x)
+        print(data_y)
+        print(data_z)
+
+        # Determines the diameter of the cone at for the combined data sets
+        circleResults = circleFit.fitCircle(data_x[:,0],data_z[:,0])
+
+        # print(circleResults)
+        print('Radius: {}'.format(circleResults[2]))
+
+        # Estimates the location for desired radius by passing prediction method the current radius
+        length_shift = self.prediction(circleResults[2])
+
+        print(length_shift)
+
+
+        # # Collects three data points 1mm further down the cone from the starting point
+        # dataMatrix2 = self.collectDataPoint([x_start-.3, y_start + length_shift, z_start+.2],routineMovementDirections,routineMovementDistances)
+        # # Determines the diameter of the cone at this point
+        # circleResults = circleFit.fitCircle(dataMatrix2[0][:,0],dataMatrix2[0][:,2])
         #
         # print(circleResults)
 
-        # # Collects three data points 1mm further down the cone from the starting point
-        # self.collectDataPoint([x_start-.02, y_start-0.1, z_start+.02],routineMovementDirections,routineMovementDistances)
-        # # Determines the diameter of the cone at this point
-        #
-        # # Collects three data points 1mm further down the cone from the starting point
-        # self.collectDataPoint([x_start-.02, y_start-0.2, z_start+.02],routineMovementDirections,routineMovementDistances)
-        # # Determines the diameter of the cone at this point
-        #
-        #
-        # # Collects three data points 1mm further down the cone from the starting point
-        # self.collectDataPoint([x_start-.04, y_start-0.3, z_start+.03],routineMovementDirections,routineMovementDistances)
-        # # Determines the diameter of the cone at this point
 
 
 
-        # Estimates the location for desired diameter
 
         # Repeat process as needed (Maybe loop that runs while diameter isn't within a certain range)
 
@@ -151,11 +167,19 @@ class SystemController():
         # Retrieves all of the data points collected
         self.retrieveDataPoints()
 
+    def prediction(self,radius):
+        print('prediction accessed')
+
+        distanceChange = (self.targetRadius-radius)/self.laserSlope
+
+        print(distanceChange)
+
+        return(distanceChange)
 
     ## Find data points
     # Method for collecting a single pass
     def collectDataPoint(self,startingLocation,movementDirection,movementDistance):
-        print('collectDataPoint accessed')
+        # print('collectDataPoint accessed')
         # Creates an instance of the stages for the routine
         routineStages = TLXYZStages.XYZStages()
         routineStages.initializeStages()
@@ -165,7 +189,7 @@ class SystemController():
         routineStages.updateStageVelocity(self.velocityMovement)
 
         # Moves the stages to the starting position for the scan
-        print('Moving to starting position')
+        # print('Moving to starting position')
         routineStages.moveStageAbsolute(self.substrateStages.macroGroup,startingLocation)
 
         # Updates the stages velocity so that the routine is run slower
@@ -182,7 +206,7 @@ class SystemController():
         ## Begins scattering event detection
         # Informs the UI to start processing the video feed
         self.queue_routineLoop.put('Start video processing')
-        print('Starting scattering detection begin')
+        # print('Starting scattering detection begin')
         pixelTriggerValue1 = self.detectScatteringBegin()
 
         # Stops the stage movement
@@ -191,7 +215,7 @@ class SystemController():
         # Retrieving stage position
         # print('Retrieving stage position')
         [x1,y1,z1] = routineStages.retrieveStagePosition()
-        print('Stage position: {},{},{}'.format(x1,y1,z1))
+        # print('Stage position: {},{},{}'.format(x1,y1,z1))
 
         # Creates a data point with the stage position, pixel count, and point type
         TLDataClass.TLData(x1,y1,z1,pixelTriggerValue1,1)
@@ -200,14 +224,14 @@ class SystemController():
         print('STARTING STEP 2')
         # time.sleep(5)
         # Creates the thread for the stages that will be moving in the routine
-        print('Starting second routine stage movement')
+        # print('Starting second routine stage movement')
         routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(movementDirection,movementDistance))
         routineStagesThread.start()
 
         ## Begins scattering event ending detection
         # Informs the UI to start processing the video feed
         self.queue_routineLoop.put('Start video processing')
-        print('Starting scattering detection end')
+        # print('Starting scattering detection end')
         pixelTriggerValue2 = self.detectScatteringEnding()
 
         # Stops the stage movement
@@ -216,7 +240,7 @@ class SystemController():
         # Retrieving stage position
         # print('Retrieving stage position')
         [x2,y2,z2] = routineStages.retrieveStagePosition()
-        print('Stage position: {},{},{}'.format(x2,y2,z2))
+        # print('Stage position: {},{},{}'.format(x2,y2,z2))
 
         # Creates a data point with the stage position, pixel count, and point type
         TLDataClass.TLData(x2,y2,z2,pixelTriggerValue2,2)
@@ -233,21 +257,21 @@ class SystemController():
         routineStages.updateStageVelocity(self.velocityMovement)
 
         # Moves the stages to the midpoint
-        print('Moving to mid position: {},{},{}'.format(x_mid,y_mid,z_mid))
+        # print('Moving to mid position: {},{},{}'.format(x_mid,y_mid,z_mid))
         routineStages.moveStageAbsolute(self.substrateStages.macroGroup,[x_mid,y_mid,z_mid])
 
         # Updates the stages velocity so that they move to the start position faster
         routineStages.updateStageVelocity(self.velocityRoutine)
 
         # Begin raising the stages
-        print('Starting third routine stage movement')
+        # print('Starting third routine stage movement')
         routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(self.substrateStages.positioner_Z,[-0.5]))
         routineStagesThread.start()
 
         ## Begins scattering event ending detection
         # Informs the UI to start processing the video feed
         self.queue_routineLoop.put('Start video processing')
-        print('Starting scattering detection end')
+        # print('Starting scattering detection end')
         pixelTriggerValue3 = self.detectScatteringEnding()
 
         # Stops the stage movement
@@ -256,7 +280,7 @@ class SystemController():
         # Retrieving stage position
         # print('Retrieving stage position')
         [x3,y3,z3] = routineStages.retrieveStagePosition()
-        print('Stage position: {},{},{}'.format(x3,y3,z3))
+        # print('Stage position: {},{},{}'.format(x3,y3,z3))
 
         # Creates a data point with the stage position, pixel count, and point type
         TLDataClass.TLData(x3,y3,z3,pixelTriggerValue3,3)
@@ -268,7 +292,7 @@ class SystemController():
     ## Routine methods to find the focalpoint of the cone
     # Method to start the tip locator routine
     def tipLocatorRoutine_FocalPoint(self):
-        print('Tip locator routine started')
+        # print('Tip locator routine started')
         # Clears the data storage object
         TLParameters.kHNSCTL_dataStorageInstances = []
 

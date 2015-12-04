@@ -16,7 +16,10 @@ class CircleFit():
     # Method for fitting the circle, pass in orthoginal coordinate point data to fit
     def fitCircle(self,x,y):
 
-        print('fitCircle accessed')
+        x = np.squeeze(np.asarray(x))
+        y = np.squeeze(np.asarray(y))
+
+        # print('fitCircle accessed')
         coefA = np.matrix((x, y, np.ones(len(x)))).getT()
         coefB = []
 
@@ -25,17 +28,17 @@ class CircleFit():
 
         coefB = np.matrix(coefB).getT()
 
-        print(coefA)
-        print(coefB)
+        # print(coefA)
+        # print(coefB)
 
-        coefficients = np.linalg.solve(coefA,coefB)
+        coefficients = np.linalg.lstsq(coefA,coefB)
 
-        print(coefficients)
+        print(coefficients[0])
 
-        center_X = -0.5 * coefficients[0]
-        center_Y = -0.5 * coefficients[1]
+        center_X = -0.5 * coefficients[0][0]
+        center_Y = -0.5 * coefficients[0][1]
 
-        radius = sqrt((coefficients[0]**2 + coefficients[1]**2)/4 - coefficients[2])
-        print(center_X,center_Y,radius)
+        radius = sqrt((coefficients[0][0]**2 + coefficients[0][1]**2)/4 - coefficients[0][2])
+        # print(center_X,center_Y,radius)
 
-        # return(center_X,center_Y,radius,coefficients)
+        return(center_X,center_Y,radius,coefficients)
