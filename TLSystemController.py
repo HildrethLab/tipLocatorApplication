@@ -201,7 +201,7 @@ class SystemController():
         routineStages.updateStageVelocity(self.velocityRoutineInitial)
 
         # Creates the thread for the stages that will be moving in the routine
-        # print('Starting routine stage movement')
+        # print('Starting first inital routine stage movement')
         routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(movementDirection,movementDistance))
         routineStagesThread.start()
 
@@ -218,17 +218,19 @@ class SystemController():
         # Stops the stage movement when scattering is detected
         routineStages.moveStageAbort()
 
+        ####### START OF NEW CODE
+
         ## Moves the stages back and starts detection again at precise velocity
         # Sets the stage velocity to movement velocity
         routineStages.updateStageVelocity(self.velocityMovement)
         # Moves the stages backwards
-        routineStages.moveStageRelative(-1*movementDirection,self.routineBackupDistance)
+        routineStages.moveStageRelative(movementDirection,-1*self.routineBackupDistance)
         # Sets the stage velocity to precise routine velocity
         routineStages.updateStageVelocity(self.velocityRoutinePrecise)
 
         ## Starts the stage movement again
         # Creates the thread for the stages that will be moving in the routine
-        # print('Starting routine stage movement')
+        # print('Starting first precise routine stage movement')
         routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(movementDirection,movementDistance))
         routineStagesThread.start()
 
@@ -242,6 +244,7 @@ class SystemController():
         # Stops the stage movement when scattering is detected
         routineStages.moveStageAbort()
 
+        ####### END OF NEW CODE
 
         # Retrieving stage position after precise detection
         # print('Retrieving stage position')
@@ -255,7 +258,7 @@ class SystemController():
         print('STARTING STEP 2')
         # time.sleep(5)
         # Creates the thread for the stages that will be moving in the routine
-        # print('Starting second routine stage movement')
+        # print('Starting second initial routine stage movement')
         routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(movementDirection,movementDistance))
         routineStagesThread.start()
 
@@ -263,10 +266,38 @@ class SystemController():
         # Informs the UI to start processing the video feed
         self.queue_routineLoop.put('Start video processing')
         # print('Starting scattering detection end')
-        pixelTriggerValue2 = self.detectScatteringEnding()
+        pixelTriggerValue2Initial = self.detectScatteringEnding()
 
         # Stops the stage movement
         routineStages.moveStageAbort()
+
+        ######### START OF NEW CODE
+
+        ## Moves the stages back and starts detection again at precise velocity
+        # Sets the stage velocity to movement velocity
+        routineStages.updateStageVelocity(self.velocityMovement)
+        # Moves the stages backwards
+        routineStages.moveStageRelative(movementDirection,-1*self.routineBackupDistance)
+        # Sets the stage velocity to precise routine velocity
+        routineStages.updateStageVelocity(self.velocityRoutinePrecise)
+
+        ## Starts the stage movement again
+        # Creates the thread for the stages that will be moving in the routine
+        # print('Starting second precise routine stage movement')
+        routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(movementDirection,movementDistance))
+        routineStagesThread.start()
+
+        ## Begins scattering event detection for precise pass
+        # Informs the UI to start processing the video feed
+        self.queue_routineLoop.put('Start video processing')
+        # Starting the scattering detection
+        # print('Starting scattering detection begin')
+        pixelTriggerValue2 = self.detectScatteringBegin()
+
+        # Stops the stage movement when scattering is detected
+        routineStages.moveStageAbort()
+
+        ####### END OF NEW CODE
 
         # Retrieving stage position
         # print('Retrieving stage position')
@@ -295,7 +326,7 @@ class SystemController():
         routineStages.updateStageVelocity(self.velocityRoutineInitial)
 
         # Begin raising the stages
-        # print('Starting third routine stage movement')
+        # print('Starting third initial routine stage movement')
         routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(self.substrateStages.positioner_Z,[-0.5]))
         routineStagesThread.start()
 
@@ -303,10 +334,38 @@ class SystemController():
         # Informs the UI to start processing the video feed
         self.queue_routineLoop.put('Start video processing')
         # print('Starting scattering detection end')
-        pixelTriggerValue3 = self.detectScatteringEnding()
+        pixelTriggerValue3Initial = self.detectScatteringEnding()
 
         # Stops the stage movement
         routineStages.moveStageAbort()
+
+        ####### START OF NEW CODE
+
+        ## Moves the stages back and starts detection again at precise velocity
+        # Sets the stage velocity to movement velocity
+        routineStages.updateStageVelocity(self.velocityMovement)
+        # Moves the stages backwards
+        routineStages.moveStageRelative(self.substrateStages.positioner_Z,-1*self.routineBackupDistance)
+        # Sets the stage velocity to precise routine velocity
+        routineStages.updateStageVelocity(self.velocityRoutinePrecise)
+
+        ## Starts the stage movement again
+        # Begin raising the stages
+        # print('Starting third precise routine stage movement')
+        routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(self.substrateStages.positioner_Z,[-0.5]))
+        routineStagesThread.start()
+
+        ## Begins scattering event detection for precise pass
+        # Informs the UI to start processing the video feed
+        self.queue_routineLoop.put('Start video processing')
+        # Starting the scattering detection
+        # print('Starting scattering detection begin')
+        pixelTriggerValue3 = self.detectScatteringBegin()
+
+        # Stops the stage movement when scattering is detected
+        routineStages.moveStageAbort()
+
+        ###### END OF NEW CODE
 
         # Retrieving stage position
         # print('Retrieving stage position')
