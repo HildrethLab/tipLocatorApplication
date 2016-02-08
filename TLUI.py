@@ -45,7 +45,7 @@ class TLUI(TLUIBase.Ui_TipLocator):
         # Creates a camera that will be used for video processing
         self.camera = SimpleCV.Camera(0)
         # Desired threshold value for processing the video
-        self.thresholdValue = 0.2
+        self.thresholdValue = 0.56
 
     # Method to add functionality to the UIs buttons
     def buttonFunctionality(self):

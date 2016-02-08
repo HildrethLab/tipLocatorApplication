@@ -10,6 +10,7 @@ import multiprocessing # Allows us to access process controls
 import threading # Allows for the usage of threads (TESTING)
 import time # TEMPT FOR TESTING
 import datetime
+import datetime
 import csv
 import numpy as np
 # Custom modules
@@ -55,7 +56,7 @@ class SystemController():
         # Sets the quick movement velocity
         self.velocityMovement = 1
         # Sets the initial routine movement velocity
-        self.velocityRoutineInitial = 0.01
+        self.velocityRoutineInitial = 0.0075
         # Sets the precise routine movement velocity
         self.velocityRoutinePrecise = 0.001
 
@@ -99,7 +100,8 @@ class SystemController():
 
     ## Routine method
     # Method to execute the tip locator routine
-    def tipLocatorRoutine(self):
+    def tipLocatorRoutine_NEW(self):
+    # def tipLocatorRoutine(self):
         print('Tip locator Routine started')
         # Clears the data storage object
         TLParameters.kHNSCTL_dataStorageInstances = []
@@ -252,7 +254,7 @@ class SystemController():
         # print('Stage position: {},{},{}'.format(x1,y1,z1))
 
         # Creates a data point with the stage position, pixel count, and point type
-        TLDataClass.TLData(x1,y1,z1,pixelTriggerValue1,1)
+        TLDataClass.TLData(x1,y1,z1,pixelTriggerValue1,1,datetime.datetime.now().time())
 
         ### Second step of the routine, find side 2
         print('STARTING STEP 2')
@@ -305,7 +307,7 @@ class SystemController():
         # print('Stage position: {},{},{}'.format(x2,y2,z2))
 
         # Creates a data point with the stage position, pixel count, and point type
-        TLDataClass.TLData(x2,y2,z2,pixelTriggerValue2,2)
+        TLDataClass.TLData(x2,y2,z2,pixelTriggerValue2,2,datetime.datetime.now().time())
 
         ### Third step of the rountine, split the two sides and find the top
         print('STARTING STEP 3')
@@ -373,11 +375,82 @@ class SystemController():
         # print('Stage position: {},{},{}'.format(x3,y3,z3))
 
         # Creates a data point with the stage position, pixel count, and point type
-        TLDataClass.TLData(x3,y3,z3,pixelTriggerValue3,3)
+        TLDataClass.TLData(x3,y3,z3,pixelTriggerValue3,3,datetime.datetime.now().time())
 
         dataMatrix = np.matrix(([x1,y1,z1],[x2,y2,z2],[x3,y3,z3]))
 
         return[dataMatrix]
+
+    ## Routine methods to test the precision of the device vs stage speed
+    # Method to start the testing routine
+    # def tipLocatorRoutine_PrecisionTest(self):
+    def tipLocatorRoutine(self):
+        # print('Tip locator routine started')
+        # Clears the data storage object
+        TLParameters.kHNSCTL_dataStorageInstances = []
+
+        # Dictionary of the max movement distance for each routine pass
+        routineMovementDistances = {
+            '1':[2],
+        }
+        # Dictionary for the movement direction for each routine pass
+        routineMovementDirections = {
+            '1':self.substrateStages.positioner_X,
+        }
+        # Dictionary for the starting location for each routine pass
+        routineStartingLocations = {
+            '1':[41.36,-10,4.27],
+        }
+
+        # dataPoints = len(routineStartingLocations)
+        dataPoints = 30
+
+        # Creates an instance of the stages for the routine
+        routineStages = TLXYZStages.XYZStages()
+        routineStages.initializeStages()
+
+        ## Data point collection
+        # Loop that runs to collect the data points
+        for i in range(dataPoints):
+            # Updates the stages velocity so that they move to the start position faster
+            routineStages.updateStageVelocity(1)
+
+            # Moves the stages to the starting position for each scan
+            print('Moving to starting position {}'.format(1))
+            routineStages.moveStageAbsolute(self.substrateStages.macroGroup,routineStartingLocations[str(1)])
+
+            # Updates the stages velocity so that the routine is run slower
+            routineStages.updateStageVelocity(self.velocityRoutineInitial)
+
+            # Creates the thread for the stages that will be moving in the routine
+            # print('Starting routine stage movement')
+            routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(routineMovementDirections[str(1)],routineMovementDistances[str(1)]))
+            routineStagesThread.start()
+
+            ### Start of the precision test
+            print('STARTING PRECISION TEST')
+
+            ## Begins scattering event detection
+            # Informs the UI to start processing the video feed
+            self.queue_routineLoop.put('Start video processing')
+            print('Starting scattering detection begin')
+            pixelTriggerValue = self.detectScatteringBegin()
+
+            # Stops the stage movement
+            routineStages.moveStageAbort()
+
+            # Retrieving stage position
+            # print('Retrieving stage position')
+            [x1,y1,z1] = routineStages.retrieveStagePosition()
+            print('Stage position: {},{},{}'.format(x1,y1,z1))
+
+            # Creates a data point with the stage position, pixel count, and point type
+            TLDataClass.TLData(x1,y1,z1,pixelTriggerValue,1,datetime.datetime.now().time())
+
+        # Signals the end of the routine loop
+        self.queue_routineLoop.put('End routine loop')
+        # Retrieves all of the data points collected
+        self.retrieveDataPoints()
 
     ## Routine methods to find the focalpoint of the cone
     # Method to start the tip locator routine
@@ -466,7 +539,7 @@ class SystemController():
         }
         # Dictionary for the starting location for each routine pass
         routineStartingLocations = {
-            '1':[39.4,-6,4.60],
+            '1':[41.55,-10,4.27],
             '2':[39.4,-6,4.57],
             '3':[39.4,-6,4.54],
             '4':[39.4,-6,4.53],
@@ -529,6 +602,7 @@ class SystemController():
             routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(routineMovementDirections[str(i+1)],routineMovementDistances[str(i+1)]))
             routineStagesThread.start()
 
+            '''
             # #### FOR TESTING #### Checking to see the spread of the scattering detection location
             # # Moves the stages to the starting position for each scan
             # print('Moving to starting position {}'.format(1))
@@ -539,6 +613,7 @@ class SystemController():
             # routineStagesThread = threading.Thread(target=routineStages.moveStageRelative, args=(routineMovementDirections[str(1)],routineMovementDistances[str(1)]))
             # routineStagesThread.start()
             # ##### END OF TESTING #####
+            '''
 
             ### First step of the routine, find side 1
             print('STARTING STEP 1')
@@ -559,7 +634,7 @@ class SystemController():
             print('Stage position: {},{},{}'.format(x1,y1,z1))
 
             # Creates a data point with the stage position, pixel count, and point type
-            TLDataClass.TLData(x1,y1,z1,pixelTriggerValue,1)
+            TLDataClass.TLData(x1,y1,z1,pixelTriggerValue,1,datetime.datetime.now().time())
 
             '''
             #######
@@ -603,7 +678,7 @@ class SystemController():
             print('Stage position: {},{},{}'.format(x,y,z))
 
             # Creates a data point with the stage position, pixel count, and point type
-            TLDataClass.TLData(x,y,z,pixelTriggerValue,2)
+            TLDataClass.TLData(x,y,z,pixelTriggerValue,2,datetime.datetime.now().time())
             '''
 
             ### Second step of the routine, find side 2
@@ -629,7 +704,7 @@ class SystemController():
             print('Stage position: {},{},{}'.format(x2,y2,z2))
 
             # Creates a data point with the stage position, pixel count, and point type
-            TLDataClass.TLData(x2,y2,z2,pixelTriggerValue,2)
+            TLDataClass.TLData(x2,y2,z2,pixelTriggerValue,2,datetime.datetime.now().time())
 
             ### Third step of the rountine, split the two sides and find the top
             print('STARTING STEP 3')
@@ -669,7 +744,7 @@ class SystemController():
             print('Stage position: {},{},{}'.format(x3,y3,z3))
 
             # Creates a data point with the stage position, pixel count, and point type
-            TLDataClass.TLData(x3,y3,z3,pixelTriggerValue,3)
+            TLDataClass.TLData(x3,y3,z3,pixelTriggerValue,3,datetime.datetime.now().time())
 
 
         # Signals the end of the routine loop
@@ -829,10 +904,10 @@ class SystemController():
         dataWriter = csv.writer(dataFile)
 
         # Writes the headers
-        dataWriter.writerow(('x','y','z','Pixel Trigger Value','Point Type'))
+        dataWriter.writerow(('x','y','z','Pixel Trigger Value','Point Type','Time'))
 
         for dataSet in TLParameters.kHNSCTL_dataStorageInstances:
             print ('Current coordinate points collected: {}, {}, {} with {} pixels triggering the event. Point type: {}'.format(dataSet.x, dataSet.y, dataSet.z,dataSet.pixelTriggerValue,dataSet.pointType))
-            dataWriter.writerow((dataSet.x,dataSet.y,dataSet.z,dataSet.pixelTriggerValue,dataSet.pointType))
+            dataWriter.writerow((dataSet.x,dataSet.y,dataSet.z,dataSet.pixelTriggerValue,dataSet.pointType,dataSet.time))
 
         dataFile.close()
