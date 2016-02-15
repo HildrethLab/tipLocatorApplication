@@ -54,9 +54,10 @@ class SystemController():
         self.thresholdPixelCount = thresholdPixelCount
 
         # Sets the quick movement velocity
-        self.velocityMovement = 1
+        self.velocityMovement = .1
         # Sets the initial routine movement velocity
-        self.velocityRoutineInitial = 0.0075
+        self.velocityRoutineInitial = 0.001
+
         # Sets the precise routine movement velocity
         self.velocityRoutinePrecise = 0.001
 
@@ -399,7 +400,7 @@ class SystemController():
         }
         # Dictionary for the starting location for each routine pass
         routineStartingLocations = {
-            '1':[41.36,-10,4.27],
+            '1':[43.10,-10,4.83],
         }
 
         # dataPoints = len(routineStartingLocations)
