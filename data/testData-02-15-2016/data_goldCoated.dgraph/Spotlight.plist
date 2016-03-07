@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Labels</key>
+	<string>Velcoty vs Range
+Stage Velocty [mm/s]
+Range [mm]
+Range vs Velocity
+
+Stage Velocity [mm/s]
+Standard Deviation
+STD vs Velocity
+
+Stage Velocity [mm/s]
+Time per Point Collection [s]
+Time per Point vs Velocity
+
+Stage Velocity [µm/s]
+Distance [µm]
+Range vs Velocity
+STD vs Velocity
+
+Stage Velocity [µm/s]
+Position [mm]
+</string>
+	<key>Text</key>
+	<string></string>
+</dict>
+</plist>
