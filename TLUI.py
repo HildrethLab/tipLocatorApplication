@@ -37,7 +37,7 @@ class TLUI(TLUIBase.Ui_TipLocator):
         self.move(0,0)
 
         # Sets the desired number of pixels threshold that will trigger the scattering event
-        self.thresholdPixelCount = 5
+        self.thresholdPixelCount = 10
 
         # Initializes the system controller
         self.initializeSystemController(self.thresholdPixelCount,self.queue_SCtoUI,self.queue_routineLoop,self.pipe_UItoPixel2)
@@ -45,7 +45,7 @@ class TLUI(TLUIBase.Ui_TipLocator):
         # Creates a camera that will be used for video processing
         self.camera = SimpleCV.Camera(0)
         # Desired threshold value for processing the video
-        self.thresholdValue = 0.2
+        self.thresholdValue = 0.15
 
     # Method to add functionality to the UIs buttons
     def buttonFunctionality(self):
